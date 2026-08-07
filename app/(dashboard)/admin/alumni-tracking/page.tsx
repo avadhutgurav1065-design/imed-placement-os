@@ -58,7 +58,7 @@ export default function AlumniTrackingPage() {
       ]);
 
       const totalReferrals = refRes.data?.length || 0;
-      const totalDonations = donRes.data?.reduce((sum, d) => sum + Number(d.amount), 0) || 0;
+      const totalDonations = donRes.data?.reduce((sum: number, d: any) => sum + Number(d.amount), 0) || 0;
       setMetrics({ 
         totalReferrals, 
         totalDonations, 
