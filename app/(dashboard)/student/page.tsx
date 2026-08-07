@@ -1,16 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { StatCard } from "@/components/shared/StatCard";
 import { ReadinessGauge } from "@/components/shared/ReadinessGauge";
 import Link from "next/link";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClient();
 
 export default function StudentHome() {
   const [stats, setStats] = useState({

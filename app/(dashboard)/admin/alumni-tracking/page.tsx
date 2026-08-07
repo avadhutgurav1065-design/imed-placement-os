@@ -4,14 +4,11 @@ import React, { useState, useEffect } from "react";
 import { Users, Linkedin, Briefcase, Wand2, Loader2, CheckCircle2, Upload, Search, Heart, IndianRupee, TrendingUp, Sparkles, Building2 } from "lucide-react";
 import Link from "next/link";
 import { DataTable } from "@/components/shared/DataTable";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 // We use the anonymous client to read public data securely via RLS
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClient();
 
 interface MentorshipPair {
   id: string;
