@@ -17,7 +17,7 @@ async function seed() {
   // 0. Ensure we have at least one Auth user for foreign keys
   console.log("Fetching/creating auth users...");
   let { data: authData } = await supabase.auth.admin.listUsers();
-  let users = authData?.users || [];
+  let users: any[] = authData?.users || [];
   
   if (users.length === 0) {
     console.log("No auth users found. Creating a dummy auth user...");
