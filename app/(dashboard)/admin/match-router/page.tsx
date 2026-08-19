@@ -39,8 +39,8 @@ export default function MatchRouterPage() {
       const { data: analyses } = await supabase.from('gap_analyses').select('user_id, student_name');
       if (analyses) {
         // Unique students
-        const unique = Array.from(new Set(analyses.map(a => a.user_id)))
-          .map(id => analyses.find(a => a.user_id === id));
+        const unique = Array.from(new Set(analyses.map((a: any) => a.user_id)))
+          .map(id => analyses.find((a: any) => a.user_id === id));
         setStudents(unique);
       }
     }

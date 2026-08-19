@@ -23,53 +23,40 @@ export default function LoginPage() {
     }).catch(() => {});
   }, []);
 
-  const handleAuth = async (action: 'login' | 'signup') => {
+  const handleLogin = async () => {
     setLoading(true);
     setError(null);
 
-    let authError;
-    let authData;
-
-    if (action === 'signup') {
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      authError = error;
-      authData = data;
-      
-      // If signup is successful but there is no session, email confirmations are enabled.
-      if (!error && data?.user && !data?.session) {
-        setError("Signup successful! Please check your email for a verification link, OR disable 'Confirm Email' in your Supabase Auth settings to log in immediately.");
-        setLoading(false);
-        return;
-      }
-
-      // If signup is successful, create a blank profile entry in the database
-      if (!error && data?.user) {
-        try {
-          await fetch("/api/student/profile", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              user_id: data.user.id,
-              email: data.user.email,
-              full_name: data.user.email?.split("@")[0] || "Student",
-              role: "student"
-            })
-          });
-        } catch (err) {
-          console.error("Failed to create profile:", err);
-        }
-      }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      authError = error;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
     }
 
-    if (authError) {
-      setError(authError.message);
-      setLoading(false);
-    } else {
-      // Upon success, redirect to the secured student dashboard
-      router.push("/student");
+    if (data?.user) {
+      // Determine user role for routing
+      let profileRole = null;
+      
+      const { data: student } = await supabase.from('student_profiles').select('role').eq('id', data.user.id).maybeSingle();
+      if (student) profileRole = student.role;
+      
+      if (!profileRole) {
+        const { data: alumni } = await supabase.from('alumni_profiles').select('role').eq('id', data.user.id).maybeSingle();
+        if (alumni) profileRole = alumni.role;
+      }
+      
+      if (!profileRole) {
+        const { data: admin } = await supabase.from('admin_profiles').select('role').eq('id', data.user.id).maybeSingle();
+        if (admin) profileRole = admin.role;
+      }
+      
+      const role = profileRole || data.user.user_metadata?.role || 'student';
+      
+      if (role === 'admin') router.push('/admin');
+      else if (role === 'alumni') router.push('/alumni');
+      else router.push('/student');
     }
   };
 
@@ -81,8 +68,8 @@ export default function LoginPage() {
             ⚠️ DATABASE NOT INITIALIZED. <br/> Please execute schema.sql in your Supabase SQL Editor.
           </div>
         )}
-        <h1 className="text-3xl font-extrabold text-cyan-400 text-center mb-2">Student Login</h1>
-        <p className="text-slate-400 text-center mb-8">Access the AI Technical Screening</p>
+        <h1 className="text-3xl font-extrabold text-cyan-400 text-center mb-2">Portal Login</h1>
+        <p className="text-slate-400 text-center mb-8">Access the IMED Placement OS</p>
 
         <div className="space-y-4">
           <div>
@@ -110,18 +97,11 @@ export default function LoginPage() {
 
           <div className="flex gap-4 pt-4">
             <button 
-              onClick={() => handleAuth('login')}
+              onClick={handleLogin}
               disabled={loading}
-              className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-lg transition-all"
+              className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-lg transition-all"
             >
               {loading ? 'Processing...' : 'Log In'}
-            </button>
-            <button 
-              onClick={() => handleAuth('signup')}
-              disabled={loading}
-              className="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold py-3 rounded-lg transition-all"
-            >
-              Sign Up
             </button>
           </div>
         </div>

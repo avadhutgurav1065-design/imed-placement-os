@@ -1,12 +1,31 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { createClient as createServerClient } from "@/lib/supabase/server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!; 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabaseService = createServiceClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(req: Request) {
   try {
+    const supabaseUser = await createServerClient();
+    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    // Check if user is admin
+    const { data: adminProfile } = await supabaseService
+      .from("admin_profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+      
+    if (!adminProfile && user.user_metadata?.role !== 'admin') {
+      return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
+    }
+
     const { alumniData } = await req.json();
 
     if (!alumniData || !Array.isArray(alumniData) || alumniData.length === 0) {
@@ -32,7 +51,7 @@ export async function POST(req: Request) {
     }
 
     // Upsert into Supabase (requires 'email' to be UNIQUE in the database schema)
-    const { error: insertError } = await supabase
+    const { error: insertError } = await supabaseService
       .from('alumni_profiles')
       .upsert(validRows, { onConflict: 'email' });
 

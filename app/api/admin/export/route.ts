@@ -1,13 +1,32 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 
-const supabase = createClient(
+const supabaseService = createServiceClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function GET(req: Request) {
   try {
+    const supabaseUser = await createServerClient();
+    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    // Check if user is admin
+    const { data: adminProfile } = await supabaseService
+      .from("admin_profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+      
+    if (!adminProfile && user.user_metadata?.role !== 'admin') {
+      return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
+    }
+
     const url = new URL(req.url);
     const format = url.searchParams.get("format") || "csv";
     const type = url.searchParams.get("type") || "full-report";
@@ -16,7 +35,7 @@ export async function GET(req: Request) {
       // Pre-vetted CSV for corporate HR
       const minScore = parseInt(url.searchParams.get("min_score") || "75");
 
-      const { data: students, error } = await supabase
+      const { data: students, error } = await supabaseService
         .from("gap_analyses")
         .select("student_name, match_score, missing_skills, job_role, target_company, created_at")
         .gte("match_score", minScore)
@@ -62,10 +81,10 @@ export async function GET(req: Request) {
     if (type === "naac-report") {
       // NAAC/NBA report with comprehensive placement data
       const [analysesRes, profilesRes, drivesRes, interviewsRes] = await Promise.all([
-        supabase.from("gap_analyses").select("*").order("created_at", { ascending: false }),
-        supabase.from("student_profiles").select("*"),
-        supabase.from("campus_drives").select("*"),
-        supabase.from("interview_logs").select("*"),
+        supabaseService.from("gap_analyses").select("*").order("created_at", { ascending: false }),
+        supabaseService.from("student_profiles").select("*"),
+        supabaseService.from("campus_drives").select("*"),
+        supabaseService.from("interview_logs").select("*"),
       ]);
 
       const analyses = analysesRes.data || [];

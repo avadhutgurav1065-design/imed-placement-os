@@ -298,7 +298,7 @@ export default function DashboardLayout({
         let { data: profileData } = await supabase
           .from("student_profiles")
           .select("*")
-          .eq("id", user.id) // it uses id in the db, not user_id
+          .eq("id", user.id)
           .maybeSingle();
 
         // If not a student, check if alumni
@@ -312,14 +312,18 @@ export default function DashboardLayout({
            if (alumniData) {
              profileData = { ...alumniData, role: "alumni" };
            } else {
-             // Admin fallback check
-             const roleMeta = user.user_metadata?.role;
-             if (roleMeta === 'admin') {
-               profileData = { role: "admin", full_name: "Admin" };
-             } else if (roleMeta === 'alumni') {
-               profileData = { role: "alumni", full_name: user.email?.split("@")[0] };
+             // Check admin profiles
+             const { data: adminData } = await supabase
+               .from("admin_profiles")
+               .select("*")
+               .eq("id", user.id)
+               .maybeSingle();
+
+             if (adminData) {
+               profileData = { ...adminData, role: "admin" };
              } else {
-               profileData = { role: "student", full_name: user.email?.split("@")[0] };
+               // Fallback if no profile exists
+               profileData = { role: "student", full_name: user.email?.split("@")[0] || "User" };
              }
            }
         }
@@ -338,7 +342,7 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen bg-[#070a13] flex">
+    <div suppressHydrationWarning className="min-h-screen bg-[#070a13] flex">
       {/* Background ambience */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-600/[0.04] rounded-full blur-[150px]" />
@@ -403,39 +407,7 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        {/* Role Switcher (For Testing) */}
-        <div className="px-3 pb-2 pt-2 border-t border-white/[0.06]">
-          <p className="px-3 text-[10px] uppercase font-bold text-slate-500 mb-2">Switch Role (Dev)</p>
-          <div className="flex flex-col gap-1">
-             <Link
-               href="/admin"
-               className={cn(
-                 "flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all",
-                 isAdmin ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "text-slate-500 hover:text-white hover:bg-white/[0.04]"
-               )}
-             >
-               Admin
-             </Link>
-             <Link
-               href="/alumni"
-               className={cn(
-                 "flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all",
-                 isAlumni ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "text-slate-500 hover:text-white hover:bg-white/[0.04]"
-               )}
-             >
-               Alumni
-             </Link>
-             <Link
-               href="/student"
-               className={cn(
-                 "flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all",
-                 !isAdmin && !isAlumni ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" : "text-slate-500 hover:text-white hover:bg-white/[0.04]"
-               )}
-             >
-               Student
-             </Link>
-          </div>
-        </div>
+
 
         {/* Sidebar toggle */}
         <div className="px-3 pb-2 pt-2">

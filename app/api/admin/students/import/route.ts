@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 
-const supabase = createClient(
+const supabaseService = createServiceClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
@@ -9,6 +10,24 @@ const supabase = createClient(
 // POST: Bulk import students from CSV
 export async function POST(req: Request) {
   try {
+    const supabaseUser = await createServerClient();
+    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    // Check if user is admin
+    const { data: adminProfile } = await supabaseService
+      .from("admin_profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+      
+    if (!adminProfile && user.user_metadata?.role !== 'admin') {
+      return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
+    }
+
     const formData = await req.formData();
     const file = formData.get("csv") as File;
 
@@ -57,7 +76,7 @@ export async function POST(req: Request) {
       }
 
       // Create auth user first (if they don't exist)
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      const { data: authData, error: authError } = await supabaseService.auth.admin.createUser({
         email: row.email,
         password: `IMED${row.enrollment_no || Date.now()}!`, // Temporary password
         email_confirm: true,
@@ -65,7 +84,7 @@ export async function POST(req: Request) {
 
       if (authError) {
         // User might already exist — try to look them up
-        const { data: existingUsers } = await supabase.auth.admin.listUsers();
+        const { data: existingUsers } = await supabaseService.auth.admin.listUsers();
         const existingUser = existingUsers?.users?.find((u) => u.email === row.email);
 
         if (existingUser) {
@@ -99,7 +118,7 @@ export async function POST(req: Request) {
 
     // Bulk upsert profiles
     if (students.length > 0) {
-      const { error: dbError } = await supabase
+      const { error: dbError } = await supabaseService
         .from("student_profiles")
         .upsert(students, { onConflict: "user_id" });
 

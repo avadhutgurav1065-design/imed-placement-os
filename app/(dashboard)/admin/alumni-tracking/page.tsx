@@ -67,8 +67,8 @@ export default function AlumniTrackingPage() {
       });
 
       const activities = [
-        ...(refRes.data || []).map(r => ({ type: 'referral', ...r })),
-        ...(donRes.data || []).map(d => ({ type: 'donation', ...d }))
+        ...(refRes.data || []).map((r: any) => ({ type: 'referral', ...r })),
+        ...(donRes.data || []).map((d: any) => ({ type: 'donation', ...d }))
       ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 6);
 
       setRecentActivity(activities);

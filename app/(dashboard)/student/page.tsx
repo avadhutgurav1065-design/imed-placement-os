@@ -34,11 +34,11 @@ export default function StudentHome() {
         const totalScans = all.length;
         const avgScore =
           totalScans > 0
-            ? Math.round(all.reduce((s, a) => s + (a.match_score || 0), 0) / totalScans)
+            ? Math.round(all.reduce((s: any, a: any) => s + (a.match_score || 0), 0) / totalScans)
             : 0;
         const bestScore =
           totalScans > 0
-            ? Math.max(...all.map((a) => a.match_score || 0))
+            ? Math.max(...all.map((a: any) => a.match_score || 0))
             : 0;
 
         setStats({
@@ -56,7 +56,7 @@ export default function StudentHome() {
   return (
     <div className="space-y-8">
       {/* Hero Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div suppressHydrationWarning className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-extrabold gradient-text mb-2">
             Student Workspace

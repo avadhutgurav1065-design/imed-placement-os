@@ -5,7 +5,7 @@ import { GlassCard } from "@/components/shared/GlassCard";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-300 relative overflow-hidden font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+    <div suppressHydrationWarning className="min-h-screen bg-[#020617] text-slate-300 relative overflow-hidden font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
       
       {/* Dynamic Background Effects */}
       <div className="absolute inset-0 z-0 pointer-events-none">
@@ -32,7 +32,7 @@ export default function LandingPage() {
           <Link href="/login" className="px-5 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors">
             Sign In
           </Link>
-          <Link href="/student" className="px-6 py-2 text-sm font-bold text-slate-900 bg-cyan-400 rounded-full hover:bg-cyan-300 transition-all shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:shadow-[0_0_25px_rgba(34,211,238,0.5)]">
+          <Link href="/login" className="px-6 py-2 text-sm font-bold text-slate-900 bg-cyan-400 rounded-full hover:bg-cyan-300 transition-all shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:shadow-[0_0_25px_rgba(34,211,238,0.5)]">
             Access Portal
           </Link>
         </div>
@@ -54,7 +54,7 @@ export default function LandingPage() {
           <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10 font-medium">
             IMED Placement OS leverages Gemini AI to evaluate student readiness, conduct real-time technical interviews, and match cohorts to ingested corporate requirements with extreme precision.
           </p>
-          <Link href="/student">
+          <Link href="/login">
             <button className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-full font-bold text-lg hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] transform hover:-translate-y-1">
               Enter Platform Space
             </button>
