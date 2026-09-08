@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 
 /**
  * Cron endpoint for automated LinkedIn job ingestion.
