@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IMED Placement OS — Director Presentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #020617;
+      --card: rgba(15, 23, 42, 0.6);
+      --border: rgba(255,255,255,0.06);
+      --cyan: #22d3ee;
+      --indigo: #818cf8;
+      --emerald: #34d399;
+      --rose: #fb7185;
+      --amber: #fbbf24;
+      --purple: #a78bfa;
+      --nav-h: 56px;
+      --brand-h: 56px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: #e2e8f0;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ===== SLIDE CONTAINER — FIXED OVERFLOW BUG ===== */
+    .slides-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      /* KEY FIX: use flex-start + safe auto-center so content never goes above viewport */
+      justify-content: flex-start;
+      align-items: center;
+      /* KEY FIX: proper padding for top bar + bottom nav + breathing room */
+      padding: calc(var(--brand-h) + 24px) 60px calc(var(--nav-h) + 24px) 60px;
+      opacity: 0;
+      transform: translateX(50px) scale(0.98);
+      transition: opacity 0.45s cubic-bezier(.4,0,.2,1), transform 0.45s cubic-bezier(.4,0,.2,1);
+      pointer-events: none;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.08) transparent;
+    }
+
+    /* Auto-center slides that fit in viewport */
+    .slide > .slide-inner {
+      margin: auto 0;
+      width: 100%;
+      max-width: 1060px;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .slide.exit-left {
+      opacity: 0;
+      transform: translateX(-50px) scale(0.98);
+    }
+
+    /* Scrollbar */
+    .slide::-webkit-scrollbar { width: 4px; }
+    .slide::-webkit-scrollbar-track { background: transparent; }
+    .slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 999px; }
+    .slide::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+    /* ===== BACKGROUNDS ===== */
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .bg-orbs .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      animation: float 10s ease-in-out infinite alternate;
+    }
+    .bg-orbs .orb-1 { top: -20%; left: -15%; width: 50vw; height: 50vw; background: rgba(34,211,238,0.06); }
+    .bg-orbs .orb-2 { bottom: -20%; right: -15%; width: 40vw; height: 40vw; background: rgba(129,140,248,0.06); animation-delay: 3s; }
+    .bg-orbs .orb-3 { top: 30%; left: 60%; width: 35vw; height: 35vw; background: rgba(52,211,153,0.03); animation-delay: 6s; }
+
+    @keyframes float {
+      from { transform: translate(0, 0) scale(1) rotate(0deg); }
+      to { transform: translate(25px, -25px) scale(1.08) rotate(3deg); }
+    }
+
+    /* Particle dots */
+    .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .particle {
+      position: absolute;
+      width: 2px; height: 2px;
+      border-radius: 50%;
+      background: rgba(34,211,238,0.3);
+      animation: drift linear infinite;
+    }
+    @keyframes drift {
+      from { transform: translateY(100vh) scale(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      to { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
+
+    /* ===== TYPOGRAPHY ===== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .badge:hover { transform: scale(1.05); }
+    .badge-cyan { background: rgba(34,211,238,0.1); color: var(--cyan); border: 1px solid rgba(34,211,238,0.2); }
+    .badge-indigo { background: rgba(129,140,248,0.1); color: var(--indigo); border: 1px solid rgba(129,140,248,0.2); }
+    .badge-emerald { background: rgba(52,211,153,0.1); color: var(--emerald); border: 1px solid rgba(52,211,153,0.2); }
+    .badge-rose { background: rgba(251,113,133,0.1); color: var(--rose); border: 1px solid rgba(251,113,133,0.2); }
+    .badge-amber { background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+    .badge-purple { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+
+    .badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+    .badge-cyan .dot { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+    .badge-indigo .dot { background: var(--indigo); box-shadow: 0 0 8px var(--indigo); }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.7); }
+    }
+
+    /* Scaled-down typography to prevent overflow */
+    h1 { font-size: 48px; font-weight: 900; line-height: 1.1; letter-spacing: -2px; margin-bottom: 16px; }
+    h2 { font-size: 34px; font-weight: 800; line-height: 1.15; letter-spacing: -1px; margin-bottom: 12px; }
+    h3 { font-size: 24px; font-weight: 700; line-height: 1.2; letter-spacing: -0.5px; margin-bottom: 10px; }
+    h4 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--cyan), var(--indigo));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .gradient-emerald {
+      background: linear-gradient(135deg, var(--emerald), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .gradient-rose {
+      background: linear-gradient(135deg, var(--rose), var(--amber));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .gradient-purple {
+      background: linear-gradient(135deg, var(--purple), var(--indigo));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #94a3b8;
+      max-width: 680px;
+      line-height: 1.7;
+      font-weight: 400;
+    }
+
+    .text-muted { color: #64748b; }
+    .text-cyan { color: var(--cyan); }
+    .text-emerald { color: var(--emerald); }
+    .text-rose { color: var(--rose); }
+    .text-amber { color: var(--amber); }
+    .text-indigo { color: var(--indigo); }
+    .text-purple { color: var(--purple); }
+
+    /* ===== CARDS — Enhanced hovers ===== */
+    .glass-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px;
+      backdrop-filter: blur(20px);
+      transition: all 0.35s cubic-bezier(.4,0,.2,1);
+      position: relative;
+      overflow: hidden;
+    }
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+      transition: background 0.35s ease;
+    }
+    .glass-card:hover {
+      border-color: rgba(255,255,255,0.12);
+      transform: translateY(-3px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    .glass-card:hover::before {
+      background: linear-gradient(90deg, transparent, rgba(34,211,238,0.15), transparent);
+    }
+
+    .glass-card-sm {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      backdrop-filter: blur(20px);
+      transition: all 0.3s cubic-bezier(.4,0,.2,1);
+    }
+    .glass-card-sm:hover {
+      border-color: rgba(255,255,255,0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+    }
+
+    /* ===== GRIDS ===== */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; width: 100%; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; width: 100%; }
+    .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; width: 100%; }
+
+    /* ===== FLOW STEPS ===== */
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 16px;
+      padding: 8px;
+      border-radius: 12px;
+      transition: background 0.25s ease;
+    }
+    .flow-step:hover { background: rgba(255,255,255,0.02); }
+    .flow-num {
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+      flex-shrink: 0;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .flow-step:hover .flow-num { transform: scale(1.1); }
+    .flow-num-cyan { background: rgba(34,211,238,0.15); color: var(--cyan); }
+    .flow-num-emerald { background: rgba(52,211,153,0.15); color: var(--emerald); }
+    .flow-num-rose { background: rgba(251,113,133,0.15); color: var(--rose); }
+    .flow-num-indigo { background: rgba(129,140,248,0.15); color: var(--indigo); }
+    .flow-num-amber { background: rgba(251,191,36,0.15); color: var(--amber); }
+    .flow-num-purple { background: rgba(167,139,250,0.15); color: var(--purple); }
+
+    /* ===== ICON BOXES ===== */
+    .icon-box {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .glass-card:hover .icon-box { transform: scale(1.1) rotate(-3deg); }
+    .icon-cyan { background: rgba(34,211,238,0.12); }
+    .icon-indigo { background: rgba(129,140,248,0.12); }
+    .icon-emerald { background: rgba(52,211,153,0.12); }
+    .icon-rose { background: rgba(251,113,133,0.12); }
+    .icon-amber { background: rgba(251,191,36,0.12); }
+    .icon-purple { background: rgba(167,139,250,0.12); }
+
+    /* ===== PROGRESS BARS ===== */
+    .progress-bar {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(30,41,59,0.8);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 1.5s cubic-bezier(.4,0,.2,1);
+      position: relative;
+    }
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 20px; height: 100%;
+      border-radius: 999px;
+      filter: blur(4px);
+    }
+    .fill-cyan { background: linear-gradient(90deg, var(--cyan), rgba(34,211,238,0.6)); }
+    .fill-cyan::after { background: var(--cyan); }
+    .fill-indigo { background: linear-gradient(90deg, var(--indigo), rgba(129,140,248,0.6)); }
+    .fill-indigo::after { background: var(--indigo); }
+    .fill-emerald { background: linear-gradient(90deg, var(--emerald), rgba(52,211,153,0.6)); }
+    .fill-emerald::after { background: var(--emerald); }
+    .fill-rose { background: linear-gradient(90deg, var(--rose), rgba(251,113,133,0.6)); }
+    .fill-rose::after { background: var(--rose); }
+    .fill-amber { background: linear-gradient(90deg, var(--amber), rgba(251,191,36,0.6)); }
+    .fill-amber::after { background: var(--amber); }
+
+    /* ===== COMPARISON TABLE ===== */
+    .comp-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+    .comp-table th {
+      padding: 12px 18px;
+      text-align: left;
+      font-weight: 700;
+      color: #94a3b8;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      border-bottom: 1px solid var(--border);
+    }
+    .comp-table td {
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      color: #cbd5e1;
+      transition: all 0.2s ease;
+    }
+    .comp-table tr { transition: background 0.2s ease; }
+    .comp-table tbody tr:hover td { background: rgba(34,211,238,0.03); }
+    .check { color: var(--emerald); font-weight: 700; }
+    .cross { color: var(--rose); font-weight: 700; }
+
+    /* ===== STAT BLOCK ===== */
+    .stat-value {
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    /* ===== NAVIGATION ===== */
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 32px;
+      height: var(--nav-h);
+      background: rgba(2,6,23,0.92);
+      backdrop-filter: blur(24px);
+      border-top: 1px solid var(--border);
+    }
+    .nav-bar .progress-track {
+      flex: 1;
+      height: 3px;
+      background: rgba(30,41,59,0.8);
+      border-radius: 999px;
+      margin: 0 20px;
+      overflow: hidden;
+    }
+    .nav-bar .progress-fill-nav {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--indigo));
+      border-radius: 999px;
+      transition: width 0.5s cubic-bezier(.4,0,.2,1);
+      box-shadow: 0 0 12px rgba(34,211,238,0.3);
+    }
+    .nav-btn {
+      padding: 8px 22px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(.4,0,.2,1);
+      user-select: none;
+    }
+    .nav-btn-prev {
+      background: rgba(255,255,255,0.04);
+      color: #94a3b8;
+      border: 1px solid var(--border);
+    }
+    .nav-btn-prev:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; transform: translateX(-2px); }
+    .nav-btn-next {
+      background: linear-gradient(135deg, #0891b2, #4f46e5);
+      color: white;
+      box-shadow: 0 4px 16px rgba(34,211,238,0.2);
+    }
+    .nav-btn-next:hover { filter: brightness(1.15); transform: translateX(2px); box-shadow: 0 6px 24px rgba(34,211,238,0.3); }
+    .nav-btn:active { transform: scale(0.96); }
+
+    .slide-counter {
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      letter-spacing: 1px;
+      min-width: 50px;
+      text-align: center;
+    }
+
+    /* ===== BRANDING BAR ===== */
+    .brand-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: var(--brand-h);
+      background: rgba(2,6,23,0.85);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--cyan), var(--indigo));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 11px;
+      color: white;
+      animation: icon-glow 3s ease-in-out infinite alternate;
+    }
+    @keyframes icon-glow {
+      from { box-shadow: 0 0 8px rgba(34,211,238,0.3); }
+      to { box-shadow: 0 0 16px rgba(129,140,248,0.4); }
+    }
+    .brand-text {
+      font-weight: 800;
+      font-size: 14px;
+      color: white;
+      letter-spacing: -0.3px;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: #475569;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    /* ===== FEATURE LIST ===== */
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      transition: all 0.3s cubic-bezier(.4,0,.2,1);
+    }
+    .feature-item:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(34,211,238,0.15);
+      transform: translateX(4px);
+      box-shadow: -4px 0 16px rgba(34,211,238,0.08);
+    }
+
+    /* ===== LISTS ===== */
+    .point-list {
+      list-style: none;
+      padding: 0;
+    }
+    .point-list li {
+      padding: 8px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #cbd5e1;
+      transition: transform 0.2s ease;
+    }
+    .point-list li:hover { transform: translateX(4px); }
+    .point-list li::before {
+      content: '';
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 6px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .point-list li:hover::before { transform: scale(1.4); }
+    .point-list.cyan li::before { background: var(--cyan); }
+    .point-list.cyan li:hover::before { box-shadow: 0 0 8px var(--cyan); }
+    .point-list.emerald li::before { background: var(--emerald); }
+    .point-list.emerald li:hover::before { box-shadow: 0 0 8px var(--emerald); }
+    .point-list.rose li::before { background: var(--rose); }
+    .point-list.rose li:hover::before { box-shadow: 0 0 8px var(--rose); }
+    .point-list.amber li::before { background: var(--amber); }
+    .point-list.indigo li::before { background: var(--indigo); }
+
+    /* ===== SPACERS ===== */
+    .mt-sm { margin-top: 10px; }
+    .mt-md { margin-top: 18px; }
+    .mt-lg { margin-top: 32px; }
+    .mb-sm { margin-bottom: 10px; }
+    .mb-md { margin-bottom: 18px; }
+    .mb-lg { margin-bottom: 32px; }
+    .w-full { width: 100%; }
+    .text-center { text-align: center; }
+    .text-left { text-align: left; }
+
+    /* ===== STAGGER ANIMATIONS ===== */
+    .slide.active .stagger { animation: staggerIn 0.5s cubic-bezier(.4,0,.2,1) forwards; opacity: 0; }
+    .slide.active .stagger:nth-child(1) { animation-delay: 0.05s; }
+    .slide.active .stagger:nth-child(2) { animation-delay: 0.1s; }
+    .slide.active .stagger:nth-child(3) { animation-delay: 0.15s; }
+    .slide.active .stagger:nth-child(4) { animation-delay: 0.2s; }
+    .slide.active .stagger:nth-child(5) { animation-delay: 0.25s; }
+    .slide.active .stagger:nth-child(6) { animation-delay: 0.3s; }
+    .slide.active .stagger:nth-child(7) { animation-delay: 0.35s; }
+    .slide.active .stagger:nth-child(8) { animation-delay: 0.4s; }
+    .slide.active .stagger:nth-child(9) { animation-delay: 0.45s; }
+    .slide.active .stagger:nth-child(10) { animation-delay: 0.5s; }
+    .slide.active .stagger:nth-child(11) { animation-delay: 0.55s; }
+    .slide.active .stagger:nth-child(12) { animation-delay: 0.6s; }
+
+    @keyframes staggerIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .slide.active .anim-up { animation: slideUp 0.5s cubic-bezier(.4,0,.2,1) forwards; }
+    .slide.active .anim-up-d1 { animation-delay: 0.1s; opacity: 0; }
+    .slide.active .anim-up-d2 { animation-delay: 0.2s; opacity: 0; }
+    .slide.active .anim-up-d3 { animation-delay: 0.3s; opacity: 0; }
+    .slide.active .anim-up-d4 { animation-delay: 0.4s; opacity: 0; }
+    .slide.active .anim-up-d5 { animation-delay: 0.5s; opacity: 0; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== TITLE SLIDE ===== */
+    .title-slide .big-title {
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: -3px;
+      line-height: 1.05;
+    }
+
+    /* ===== GLOW EFFECTS ===== */
+    .glow-cyan { box-shadow: 0 0 30px rgba(34,211,238,0.12); }
+    .glow-emerald { box-shadow: 0 0 30px rgba(52,211,153,0.12); }
+
+    /* ===== ECOSYSTEM CENTER ===== */
+    .eco-center {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(34,211,238,0.15), rgba(129,140,248,0.15));
+      border: 2px solid rgba(34,211,238,0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      animation: eco-pulse 3s ease-in-out infinite;
+    }
+    @keyframes eco-pulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(34,211,238,0.1); }
+      50% { box-shadow: 0 0 40px rgba(34,211,238,0.25); border-color: rgba(129,140,248,0.5); }
+    }
+
+    /* ===== FLOW CHIP ===== */
+    .flow-chip {
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    .flow-chip:hover { transform: translateY(-2px) scale(1.04); }
+
+    /* ===== FLOW ARROW ===== */
+    .flow-arrow {
+      color: #334155;
+      font-size: 14px;
+      transition: color 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    /* ===== KEYBOARD HINT ===== */
+    .key-hint {
+      position: fixed;
+      bottom: calc(var(--nav-h) + 8px);
+      right: 32px;
+      font-size: 10px;
+      color: #1e293b;
+      z-index: 101;
+      transition: opacity 0.3s ease;
+    }
+    kbd {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: 'Inter', sans-serif;
+      font-size: 9px;
+    }
+
+    /* ===== TYPING CURSOR ===== */
+    .typing-cursor::after {
+      content: '|';
+      animation: blink-cursor 1s infinite;
+      color: var(--cyan);
+      font-weight: 300;
+    }
+    @keyframes blink-cursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* ===== SCORE RING ===== */
+    .score-ring {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      position: relative;
+    }
+    .score-ring::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid rgba(52,211,153,0.2);
+    }
+    .score-ring::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid var(--emerald);
+      border-right-color: transparent;
+      border-bottom-color: transparent;
+      animation: spin-ring 3s linear infinite;
+    }
+    @keyframes spin-ring { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="particles" id="particles"></div>
+
+  <!-- Top Brand Bar -->
+  <div class="brand-bar">
+    <div class="brand-logo">
+      <div class="brand-icon">IP</div>
+      <div>
+        <div class="brand-text">IMED Placement OS</div>
+        <div class="brand-sub">Director Presentation • Sep 2026</div>
+      </div>
+    </div>
+    <div class="brand-sub" id="section-title" style="font-size: 12px; color: #64748b;">Introduction</div>
+  </div>
+
+  <!-- Keyboard Hint -->
+  <div class="key-hint"><kbd>←</kbd> <kbd>→</kbd> or <kbd>Space</kbd> to navigate</div>
+
+  <!-- ============================================================ -->
+  <!-- SLIDES -->
+  <!-- ============================================================ -->
+  <div class="slides-wrapper">
+
+    <!-- ==================== SLIDE 1: TITLE ==================== -->
+    <div class="slide active title-slide" data-section="Introduction">
+      <div class="slide-inner text-center">
+        <div class="badge badge-cyan anim-up"><span class="dot"></span> AI-Powered Placement Engine</div>
+        <h1 class="big-title anim-up anim-up-d1"><span class="gradient-text">IMED Placement OS</span></h1>
+        <p class="subtitle anim-up anim-up-d2" style="margin: 20px auto;">
+          Bridging the gap between Campus &amp; Corporate using Artificial Intelligence.<br>
+          A complete placement intelligence platform built for IMED, Bharati Vidyapeeth.
+        </p>
+        <div class="anim-up anim-up-d3" style="display: flex; gap: 14px; justify-content: center; margin-top: 28px; flex-wrap: wrap;">
+          <div class="glass-card-sm" style="padding: 14px 22px; text-align: center;">
+            <div style="font-size: 26px; font-weight: 900; color: var(--cyan);">3</div>
+            <div style="font-size: 10px; color: #64748b; font-weight: 600;">User Portals</div>
+          </div>
+          <div class="glass-card-sm" style="padding: 14px 22px; text-align: center;">
+            <div style="font-size: 26px; font-weight: 900; color: var(--indigo);">28+</div>
+            <div style="font-size: 10px; color: #64748b; font-weight: 600;">Features</div>
+          </div>
+          <div class="glass-card-sm" style="padding: 14px 22px; text-align: center;">
+            <div style="font-size: 26px; font-weight: 900; color: var(--emerald);">17+</div>
+            <div style="font-size: 10px; color: #64748b; font-weight: 600;">API Routes</div>
+          </div>
+          <div class="glass-card-sm" style="padding: 14px 22px; text-align: center;">
+            <div style="font-size: 26px; font-weight: 900; color: var(--amber);">100%</div>
+            <div style="font-size: 10px; color: #64748b; font-weight: 600;">AI-Driven</div>
+          </div>
+        </div>
+        <p class="anim-up anim-up-d4" style="font-size: 12px; color: #1e293b; margin-top: 32px;">
+          Presented by • Avadhut Gurav &amp; Team
+        </p>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 2: THE PROBLEM ==================== -->
+    <div class="slide" data-section="The Problem">
+      <div class="slide-inner">
+        <div class="badge badge-rose anim-up">⚠️ Current Challenge</div>
+        <h2 class="anim-up anim-up-d1">The Problem We're Solving</h2>
+        <p class="subtitle mb-md anim-up anim-up-d2">Every year, IMED faces placement challenges that cost the institute reputation and students their careers.</p>
+        <div class="grid-2 anim-up anim-up-d3">
+          <div class="glass-card stagger">
+            <div class="icon-box icon-rose mb-sm">😰</div>
+            <h4 style="color: var(--rose); font-size: 15px;">Blind Placement Drives</h4>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.6;">Students apply to drives without knowing if they're qualified. The placement cell has <strong style="color: white;">no data</strong> on who is ready for which company.</p>
+          </div>
+          <div class="glass-card stagger">
+            <div class="icon-box icon-amber mb-sm">📋</div>
+            <h4 style="color: var(--amber); font-size: 15px;">Manual NAAC Reports</h4>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.6;">Generating placement statistics for accreditation is a <strong style="color: white;">weeks-long manual effort</strong>. Data scattered across Excel sheets.</p>
+          </div>
+          <div class="glass-card stagger">
+            <div class="icon-box icon-indigo mb-sm">🎤</div>
+            <h4 style="color: var(--indigo); font-size: 15px;">No Interview Preparation</h4>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.6;">Students go <strong style="color: white;">unprepared for specific company requirements</strong>. No system to simulate real technical interviews.</p>
+          </div>
+          <div class="glass-card stagger">
+            <div class="icon-box icon-purple mb-sm">🔗</div>
+            <h4 style="color: var(--purple); font-size: 15px;">Zero Alumni Engagement</h4>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.6;">IMED's alumni network is <strong style="color: white;">completely untapped</strong>. No platform for referrals, mentorship, or fundraising.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 3: OUR SOLUTION ==================== -->
+    <div class="slide" data-section="Our Solution">
+      <div class="slide-inner">
+        <div class="badge badge-cyan anim-up"><span class="dot"></span> Our Answer</div>
+        <h2 class="anim-up anim-up-d1">IMED Placement OS — <span class="gradient-text">One Platform, Total Control</span></h2>
+        <p class="subtitle mb-md anim-up anim-up-d2">An AI-powered operating system that quantifies, predicts, and optimizes every aspect of the placement lifecycle.</p>
+        <div class="grid-3 anim-up anim-up-d3">
+          <div class="glass-card text-center stagger">
+            <div style="font-size: 36px; margin-bottom: 10px;">🎓</div>
+            <h4 style="color: var(--cyan); font-size: 15px;">Student Portal</h4>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.5;">Upload resume, get AI-scored, practice interviews, track readiness</p>
+            <div style="font-size: 10px; color: var(--cyan); font-weight: 700; margin-top: 10px;">10 Features →</div>
+          </div>
+          <div class="glass-card text-center stagger">
+            <div style="font-size: 36px; margin-bottom: 10px;">🛡️</div>
+            <h4 style="color: var(--amber); font-size: 15px;">Admin Command Center</h4>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.5;">Real-time KPIs, risk telemetry, skill radar, NAAC export</p>
+            <div style="font-size: 10px; color: var(--amber); font-weight: 700; margin-top: 10px;">14 Features →</div>
+          </div>
+          <div class="glass-card text-center stagger">
+            <div style="font-size: 36px; margin-bottom: 10px;">🤝</div>
+            <h4 style="color: var(--purple); font-size: 15px;">Alumni Portal</h4>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.5;">Mentorship, job referrals, donations, engagement scoring</p>
+            <div style="font-size: 10px; color: var(--purple); font-weight: 700; margin-top: 10px;">4 Features →</div>
+          </div>
+        </div>
+        <div class="glass-card mt-md anim-up anim-up-d4" style="border-color: rgba(34,211,238,0.15); padding: 20px 24px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div class="icon-box icon-cyan">🤖</div>
+            <div>
+              <h4 style="color: white; margin-bottom: 2px; font-size: 14px;">Powered by Google Gemini AI</h4>
+              <p style="font-size: 12px; color: #94a3b8;">Resume scanning uses Gemini 3.6 Flash for multimodal PDF analysis. Interview questions from real JDs using RAG. Job descriptions vectorized with text-embedding-004.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 4: HOW WE BUILT IT ==================== -->
+    <div class="slide" data-section="Technology">
+      <div class="slide-inner">
+        <div class="badge badge-indigo anim-up"><span class="dot"></span> Technology Stack</div>
+        <h2 class="anim-up anim-up-d1">How We Built It</h2>
+        <p class="subtitle mb-md anim-up anim-up-d2">Enterprise-grade technology stack designed for scalability, security, and real-time performance.</p>
+        <div class="grid-2 anim-up anim-up-d3">
+          <div>
+            <div class="flow-step stagger">
+              <div class="flow-num flow-num-cyan">01</div>
+              <div>
+                <h4 style="font-size: 14px; color: white;">Next.js 15 + React 19</h4>
+                <p style="font-size: 12px; color: #94a3b8;">Full-stack framework with App Router, SSR, and TypeScript.</p>
+              </div>
+            </div>
+            <div class="flow-step stagger">
+              <div class="flow-num flow-num-emerald">02</div>
+              <div>
+                <h4 style="font-size: 14px; color: white;">Google Gemini AI (gemini-3.6-flash)</h4>
+                <p style="font-size: 12px; color: #94a3b8;">Multimodal AI — reads PDFs natively. Generates scores, skill gaps, action plans.</p>
+              </div>
+            </div>
+            <div class="flow-step stagger">
+              <div class="flow-num flow-num-indigo">03</div>
+              <div>
+                <h4 style="font-size: 14px; color: white;">Supabase (PostgreSQL + pgvector)</h4>
+                <p style="font-size: 12px; color: #94a3b8;">Database with RLS, realtime, file storage, and vector embeddings.</p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="flow-step stagger">
+              <div class="flow-num flow-num-amber">04</div>
+              <div>
+                <h4 style="font-size: 14px; color: white;">Google text-embedding-004</h4>
+                <p style="font-size: 12px; color: #94a3b8;">768-dimensional vectors for semantic job matching beyond keywords.</p>
+              </div>
+            </div>
+            <div class="flow-step stagger">
+              <div class="flow-num flow-num-rose">05</div>
+              <div>
+                <h4 style="font-size: 14px; color: white;">Supabase Auth + Row-Level Security</h4>
+                <p style="font-size: 12px; color: #94a3b8;">Role-based access. Students can ONLY see their own data.</p>
+              </div>
+            </div>
+            <div class="flow-step stagger">
+              <div class="flow-num flow-num-purple">06</div>
+              <div>
+                <h4 style="font-size: 14px; color: white;">Vercel + Tailwind + shadcn/ui</h4>
+                <p style="font-size: 12px; color: #94a3b8;">Deployed with cron jobs. Premium dark-mode glassmorphism UI.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 5: SYSTEM ARCHITECTURE ==================== -->
+    <div class="slide" data-section="Architecture">
+      <div class="slide-inner">
+        <div class="badge badge-cyan anim-up"><span class="dot"></span> System Design</div>
+        <h2 class="anim-up anim-up-d1">System Architecture</h2>
+        <p class="subtitle mb-md anim-up anim-up-d2">Three-layer architecture: Frontend → API + AI Layer → Data Layer</p>
+        <div class="grid-3 anim-up anim-up-d3" style="margin-bottom: 14px;">
+          <div class="glass-card-sm text-center stagger" style="border-color: rgba(34,211,238,0.15);">
+            <div style="font-size: 11px; font-weight: 800; color: var(--cyan); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px;">Frontend Layer</div>
+            <div style="font-size: 12px; color: #94a3b8;">Next.js App Router</div>
+            <div style="display: flex; gap: 4px; justify-content: center; margin-top: 8px; flex-wrap: wrap;">
+              <span class="flow-chip" style="font-size: 9px; padding: 3px 8px; background: rgba(34,211,238,0.1); color: var(--cyan); border: 1px solid rgba(34,211,238,0.15);">Student</span>
+              <span class="flow-chip" style="font-size: 9px; padding: 3px 8px; background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.15);">Admin</span>
+              <span class="flow-chip" style="font-size: 9px; padding: 3px 8px; background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.15);">Alumni</span>
+            </div>
+          </div>
+          <div class="glass-card-sm text-center stagger" style="border-color: rgba(129,140,248,0.15);">
+            <div style="font-size: 11px; font-weight: 800; color: var(--indigo); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px;">API + AI Layer</div>
+            <div style="font-size: 12px; color: #94a3b8;">17+ Route Handlers</div>
+            <div style="display: flex; gap: 4px; justify-content: center; margin-top: 8px; flex-wrap: wrap;">
+              <span class="flow-chip" style="font-size: 9px; padding: 3px 8px; background: rgba(52,211,153,0.1); color: var(--emerald); border: 1px solid rgba(52,211,153,0.15);">Gemini</span>
+              <span class="flow-chip" style="font-size: 9px; padding: 3px 8px; background: rgba(129,140,248,0.1); color: var(--indigo); border: 1px solid rgba(129,140,248,0.15);">Embed</span>
+              <span class="flow-chip" style="font-size: 9px; padding: 3px 8px; background: rgba(251,113,133,0.1); color: var(--rose); border: 1px solid rgba(251,113,133,0.15);">RAG</span>
+            </div>
+          </div>
+          <div class="glass-card-sm text-center stagger" style="border-color: rgba(52,211,153,0.15);">
+            <div style="font-size: 11px; font-weight: 800; color: var(--emerald); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px;">Data Layer</div>
+            <div style="font-size: 12px; color: #94a3b8;">Supabase Platform</div>
+            <div style="display: flex; gap: 4px; justify-content: center; margin-top: 8px; flex-wrap: wrap;">
+              <span class="flow-chip" style="font-size: 9px; padding: 3px 8px; background: rgba(52,211,153,0.1); color: var(--emerald); border: 1px solid rgba(52,211,153,0.15);">PostgreSQL</span>
+              <span class="flow-chip" style="font-size: 9px; padding: 3px 8px; background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.15);">pgvector</span>
+            </div>
+          </div>
+        </div>
+        <div class="glass-card anim-up anim-up-d4" style="padding: 20px;">
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">AI Gap Analysis Data Flow</div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center;">
+            <span class="flow-chip" style="background: rgba(34,211,238,0.1); color: var(--cyan); border: 1px solid rgba(34,211,238,0.2);">Upload PDF</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip" style="background: rgba(129,140,248,0.1); color: var(--indigo); border: 1px solid rgba(129,140,248,0.2);">Supabase Storage</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip" style="background: rgba(52,211,153,0.1); color: var(--emerald); border: 1px solid rgba(52,211,153,0.2);">Gemini (Base64)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip" style="background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.2);">Score 0-100%</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip" style="background: rgba(251,113,133,0.1); color: var(--rose); border: 1px solid rgba(251,113,133,0.2);">Save to DB</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip" style="background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.2);">Admin Analytics</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 6: STUDENT FEATURES ==================== -->
+    <div class="slide" data-section="Student Portal">
+      <div class="slide-inner">
+        <div class="badge badge-cyan anim-up">🎓 Student Portal</div>
+        <h2 class="anim-up anim-up-d1">Student Features — <span class="gradient-text">10 Modules</span></h2>
+        <p class="subtitle mb-md anim-up anim-up-d2">Everything a student needs to become placement-ready.</p>
+        <div class="grid-2 anim-up anim-up-d3" style="gap: 10px;">
+          <div class="feature-item stagger">
+            <div class="icon-box icon-cyan" style="width: 36px; height: 36px; font-size: 16px; border-radius: 10px;">📊</div>
+            <div><h4 style="font-size: 13px; color: white; margin-bottom: 1px;">Dashboard</h4><p style="font-size: 11px; color: #64748b;">Total scans, avg match %, readiness gauge</p></div>
+          </div>
+          <div class="feature-item stagger" style="border-color: rgba(34,211,238,0.15); background: rgba(34,211,238,0.03);">
+            <div class="icon-box icon-cyan" style="width: 36px; height: 36px; font-size: 16px; border-radius: 10px;">🤖</div>
+            <div><h4 style="font-size: 13px; color: var(--cyan); margin-bottom: 1px;">AI Gap Analyzer ⭐</h4><p style="font-size: 11px; color: #64748b;">Upload resume → AI scores vs JD → Action plan</p></div>
+          </div>
+          <div class="feature-item stagger">
+            <div class="icon-box icon-indigo" style="width: 36px; height: 36px; font-size: 16px; border-radius: 10px;">🕐</div>
+            <div><h4 style="font-size: 13px; color: white; margin-bottom: 1px;">Scan History</h4><p style="font-size: 11px; color: #64748b;">Full history of all past gap analyses</p></div>
+          </div>
+          <div class="feature-item stagger" style="border-color: rgba(52,211,153,0.15); background: rgba(52,211,153,0.03);">
+            <div class="icon-box icon-emerald" style="width: 36px; height: 36px; font-size: 16px; border-radius: 10px;">🎤</div>
+            <div><h4 style="font-size: 13px; color: var(--emerald); margin-bottom: 1px;">AI Voice Interview ⭐</h4><p style="font-size: 11px; color: #64748b;">Voice mock interview with Speech API + Gemini RAG</p></div>
+          </div>
+          <div class="feature-item stagger">
+            <div class="icon-box icon-indigo" style="width: 36px; height: 36px; font-size: 16px; border-radius: 10px;">💬</div>
+            <div><h4 style="font-size: 13px; color: white; margin-bottom: 1px;">AI Chat Interview</h4><p style="font-size: 11px; color: #64748b;">Text-based technical interview with Gemini</p></div>
+          </div>
+          <div class="feature-item stagger">
+            <div class="icon-box icon-amber" style="width: 36px; height: 36px; font-size: 16px; border-radius: 10px;">📝</div>
+            <div><h4 style="font-size: 13px; color: white; margin-bottom: 1px;">AI Resume Builder</h4><p style="font-size: 11px; color: #64748b;">AI-assisted resume creation</p></div>
+          </div>
+          <div class="feature-item stagger">
+            <div class="icon-box icon-purple" style="width: 36px; height: 36px; font-size: 16px; border-radius: 10px;">💼</div>
+            <div><h4 style="font-size: 13px; color: white; margin-bottom: 1px;">Alumni Referrals</h4><p style="font-size: 11px; color: #64748b;">Job openings posted by IMED alumni</p></div>
+          </div>
+          <div class="feature-item stagger">
+            <div class="icon-box icon-rose" style="width: 36px; height: 36px; font-size: 16px; border-radius: 10px;">🏆</div>
+            <div><h4 style="font-size: 13px; color: white; margin-bottom: 1px;">Leaderboard</h4><p style="font-size: 11px; color: #64748b;">Student rankings by match scores</p></div>
+          </div>
+          <div class="feature-item stagger">
+            <div class="icon-box icon-emerald" style="width: 36px; height: 36px; font-size: 16px; border-radius: 10px;">🎥</div>
+            <div><h4 style="font-size: 13px; color: white; margin-bottom: 1px;">Soft Skills Analyzer</h4><p style="font-size: 11px; color: #64748b;">Video analysis of communication skills</p></div>
+          </div>
+          <div class="feature-item stagger">
+            <div class="icon-box icon-cyan" style="width: 36px; height: 36px; font-size: 16px; border-radius: 10px;">🎯</div>
+            <div><h4 style="font-size: 13px; color: white; margin-bottom: 1px;">AI Job Matches</h4><p style="font-size: 11px; color: #64748b;">AI-recommended openings for your profile</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 7: AI GAP ANALYZER ==================== -->
+    <div class="slide" data-section="AI Gap Analyzer">
+      <div class="slide-inner">
+        <div class="badge badge-cyan anim-up">⭐ Crown Jewel Feature</div>
+        <h2 class="anim-up anim-up-d1">AI Gap Analyzer — <span class="gradient-text">How It Works</span></h2>
+        <div class="grid-2-1 mt-md anim-up anim-up-d2">
+          <div>
+            <div class="flow-step stagger">
+              <div class="flow-num flow-num-cyan">1</div>
+              <div><h4 style="font-size: 13px; color: white;">Student Uploads PDF Resume</h4><p style="font-size: 11px; color: #94a3b8;">Drag-and-drop. Stored in Supabase Storage's encrypted bucket.</p></div>
+            </div>
+            <div class="flow-step stagger">
+              <div class="flow-num flow-num-indigo">2</div>
+              <div><h4 style="font-size: 13px; color: white;">Selects Target Company</h4><p style="font-size: 11px; color: #94a3b8;">Picks from pre-ingested corporate JDs or pastes a manual JD.</p></div>
+            </div>
+            <div class="flow-step stagger">
+              <div class="flow-num flow-num-emerald">3</div>
+              <div><h4 style="font-size: 13px; color: white;">Gemini Reads the PDF Natively</h4><p style="font-size: 11px; color: #94a3b8;">PDF → Base64 → Gemini as <strong style="color: white;">multimodal input</strong>. No text extraction needed.</p></div>
+            </div>
+            <div class="flow-step stagger">
+              <div class="flow-num flow-num-amber">4</div>
+              <div><h4 style="font-size: 13px; color: white;">AI Returns Structured JSON</h4><p style="font-size: 11px; color: #94a3b8;">Match Score, Missing Skills, 48-Hour Action Plan — saved to DB for admin analytics.</p></div>
+            </div>
+          </div>
+          <div class="glass-card stagger" style="background: linear-gradient(180deg, rgba(15,23,42,0.8), rgba(6,12,30,0.9)); border-color: rgba(34,211,238,0.15); text-align: center; padding: 24px 20px;">
+            <div style="font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;">AI Output</div>
+            <div class="score-ring">
+              <span style="font-size: 28px; font-weight: 900; color: var(--emerald); z-index: 1;">78%</span>
+            </div>
+            <div style="font-size: 11px; font-weight: 800; color: var(--emerald); letter-spacing: 2px; text-transform: uppercase;">UNLOCKED ✓</div>
+            <div style="margin-top: 16px; text-align: left;">
+              <div style="font-size: 10px; color: var(--rose); font-weight: 700; margin-bottom: 6px;">Missing Skills:</div>
+              <div style="font-size: 11px; color: #94a3b8; padding: 5px 8px; background: rgba(251,113,133,0.06); border-radius: 6px; margin-bottom: 3px;">• Docker & Kubernetes</div>
+              <div style="font-size: 11px; color: #94a3b8; padding: 5px 8px; background: rgba(251,113,133,0.06); border-radius: 6px;">• CI/CD Pipelines</div>
+            </div>
+            <div style="margin-top: 10px; text-align: left;">
+              <div style="font-size: 10px; color: var(--cyan); font-weight: 700; margin-bottom: 6px;">48-Hour Plan:</div>
+              <div style="font-size: 11px; color: #94a3b8; padding: 5px 8px; background: rgba(34,211,238,0.06); border-radius: 6px; margin-bottom: 3px;">1. Docker crash course</div>
+              <div style="font-size: 11px; color: #94a3b8; padding: 5px 8px; background: rgba(34,211,238,0.06); border-radius: 6px;">2. Deploy on K8s</div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-card-sm mt-sm anim-up anim-up-d4" style="border-color: rgba(52,211,153,0.12); display: flex; align-items: center; gap: 12px; padding: 14px 18px;">
+          <span style="font-size: 18px;">💡</span>
+          <p style="font-size: 12px; color: #94a3b8;"><strong style="color: var(--emerald);">Key:</strong> ≥75% = <strong style="color: white;">UNLOCKED</strong> for drive. Below 75% = LOCKED until action plan is complete. <strong style="color: white;">Forces self-improvement.</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 8: AI INTERVIEW ==================== -->
+    <div class="slide" data-section="AI Interview">
+      <div class="slide-inner">
+        <div class="badge badge-emerald anim-up">🎤 RAG Architecture</div>
+        <h2 class="anim-up anim-up-d1">AI Interview — <span class="gradient-emerald">Not Generic. Real.</span></h2>
+        <p class="subtitle mb-md anim-up anim-up-d2">Questions from <strong style="color: white;">actual corporate JDs</strong>, not a static question bank.</p>
+        <div class="grid-2 anim-up anim-up-d3">
+          <div class="glass-card stagger">
+            <h4 style="color: var(--rose); font-size: 14px;">❌ Traditional Approach</h4>
+            <ul class="point-list rose" style="margin-top: 8px;">
+              <li>Generic 500+ pre-written question banks</li>
+              <li>No connection to the specific company's needs</li>
+              <li>Students memorize instead of understanding</li>
+              <li>Same questions for all companies</li>
+            </ul>
+          </div>
+          <div class="glass-card glow-emerald stagger" style="border-color: rgba(52,211,153,0.2);">
+            <h4 style="color: var(--emerald); font-size: 14px;">✅ Our RAG Approach</h4>
+            <ul class="point-list emerald" style="margin-top: 8px;">
+              <li>Queries <strong style="color: white;">corporate_jobs</strong> table for real JD</li>
+              <li>Gemini generates <strong style="color: white;">company-specific</strong> questions</li>
+              <li>Supports <strong style="color: white;">voice</strong> & <strong style="color: white;">text chat</strong> modes</li>
+              <li>Graceful fallback if JD not in database</li>
+            </ul>
+          </div>
+        </div>
+        <div class="glass-card mt-md anim-up anim-up-d4" style="padding: 18px;">
+          <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;">RAG Flow</div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center;">
+            <span class="flow-chip" style="background: rgba(34,211,238,0.1); color: var(--cyan); border: 1px solid rgba(34,211,238,0.2);">Pick role</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip" style="background: rgba(52,211,153,0.1); color: var(--emerald); border: 1px solid rgba(52,211,153,0.2);">DB lookup</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip" style="background: rgba(129,140,248,0.1); color: var(--indigo); border: 1px solid rgba(129,140,248,0.2);">Real JD → Gemini</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-chip" style="background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.2);">Company-specific Q&A</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 9: ADMIN FEATURES ==================== -->
+    <div class="slide" data-section="Admin Portal">
+      <div class="slide-inner">
+        <div class="badge badge-amber anim-up">🛡️ Admin Command Center</div>
+        <h2 class="anim-up anim-up-d1">Admin Features — <span class="gradient-text">14 Modules</span></h2>
+        <p class="subtitle mb-md anim-up anim-up-d2">Total placement intelligence for the director.</p>
+        <div class="grid-3 anim-up anim-up-d3" style="gap: 10px;">
+          <div class="glass-card-sm stagger" style="padding: 14px;">
+            <div style="font-size: 16px; margin-bottom: 6px;">📊</div>
+            <h4 style="font-size: 12px; color: white; margin-bottom: 2px;">KPI Dashboard</h4>
+            <p style="font-size: 10px; color: #64748b;">Total students, scans, ready vs at-risk</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 14px; border-color: rgba(34,211,238,0.12);">
+            <div style="font-size: 16px; margin-bottom: 6px;">⚡</div>
+            <h4 style="font-size: 12px; color: var(--cyan); margin-bottom: 2px;">Match Router ⭐</h4>
+            <p style="font-size: 10px; color: #64748b;">Students scoring ≥X% for profiles</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 14px; border-color: rgba(129,140,248,0.12);">
+            <div style="font-size: 16px; margin-bottom: 6px;">📡</div>
+            <h4 style="font-size: 12px; color: var(--indigo); margin-bottom: 2px;">Skill Radar ⭐</h4>
+            <p style="font-size: 10px; color: #64748b;">Batch-wide skill gap analysis</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 14px; border-color: rgba(251,113,133,0.12);">
+            <div style="font-size: 16px; margin-bottom: 6px;">🚨</div>
+            <h4 style="font-size: 12px; color: var(--rose); margin-bottom: 2px;">Risk Telemetry ⭐</h4>
+            <p style="font-size: 10px; color: #64748b;">Flag at-risk students</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 14px;">
+            <div style="font-size: 16px; margin-bottom: 6px;">📅</div>
+            <h4 style="font-size: 12px; color: white; margin-bottom: 2px;">Campus Drives</h4>
+            <p style="font-size: 10px; color: #64748b;">Create & manage drives</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 14px;">
+            <div style="font-size: 16px; margin-bottom: 6px;">📥</div>
+            <h4 style="font-size: 12px; color: white; margin-bottom: 2px;">Job Ingestion</h4>
+            <p style="font-size: 10px; color: #64748b;">Ingest + vectorize JDs</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 14px;">
+            <div style="font-size: 16px; margin-bottom: 6px;">📋</div>
+            <h4 style="font-size: 12px; color: white; margin-bottom: 2px;">Interview Logs</h4>
+            <p style="font-size: 10px; color: #64748b;">All AI sessions</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 14px;">
+            <div style="font-size: 16px; margin-bottom: 6px;">👥</div>
+            <h4 style="font-size: 12px; color: white; margin-bottom: 2px;">Student Mgmt</h4>
+            <p style="font-size: 10px; color: #64748b;">All student profiles</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 14px; border-color: rgba(52,211,153,0.12);">
+            <div style="font-size: 16px; margin-bottom: 6px;">📄</div>
+            <h4 style="font-size: 12px; color: var(--emerald); margin-bottom: 2px;">NAAC Export ⭐</h4>
+            <p style="font-size: 10px; color: #64748b;">One-click CSV report</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 14px;">
+            <div style="font-size: 16px; margin-bottom: 6px;">🎓</div>
+            <h4 style="font-size: 12px; color: white; margin-bottom: 2px;">Alumni Tracking</h4>
+            <p style="font-size: 10px; color: #64748b;">Engagement dashboard</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 14px;">
+            <div style="font-size: 16px; margin-bottom: 6px;">💰</div>
+            <h4 style="font-size: 12px; color: white; margin-bottom: 2px;">Fundraising</h4>
+            <p style="font-size: 10px; color: #64748b;">Donation campaigns</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 14px;">
+            <div style="font-size: 16px; margin-bottom: 6px;">📈</div>
+            <h4 style="font-size: 12px; color: white; margin-bottom: 2px;">Predictive Analytics</h4>
+            <p style="font-size: 10px; color: #64748b;">Forecast placement rates</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 10: ADMIN INTELLIGENCE ==================== -->
+    <div class="slide" data-section="Admin Intelligence">
+      <div class="slide-inner">
+        <div class="badge badge-amber anim-up">📊 Intelligence</div>
+        <h2 class="anim-up anim-up-d1">What the Director <span class="gradient-text">Actually Sees</span></h2>
+        <div class="grid-2 mt-md anim-up anim-up-d2">
+          <div class="glass-card stagger" style="border-color: rgba(34,211,238,0.12); padding: 22px;">
+            <h4 style="color: var(--cyan); margin-bottom: 12px; font-size: 14px;">⚡ Match Router</h4>
+            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">TCS visits. Set threshold 75%. System returns all qualified students instantly.</p>
+            <div style="background: rgba(2,6,23,0.6); border-radius: 10px; padding: 12px; font-family: monospace; font-size: 10px; color: #64748b;">
+              <div style="color: var(--cyan);">Query: Backend Engineer | Min: 75%</div>
+              <div style="margin-top: 6px;">
+                <span style="color: white;">Rahul Sharma</span> — <span style="color: var(--emerald);">92%</span><br>
+                <span style="color: white;">Priya Desai</span> — <span style="color: var(--emerald);">88%</span><br>
+                <span style="color: white;">Amit Patil</span> — <span style="color: var(--emerald);">81%</span><br>
+                <span style="color: #475569;">→ Export as CSV</span>
+              </div>
+            </div>
+          </div>
+          <div class="glass-card stagger" style="border-color: rgba(129,140,248,0.12); padding: 22px;">
+            <h4 style="color: var(--indigo); margin-bottom: 12px; font-size: 14px;">📡 Cohort Skill Radar</h4>
+            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">Top batch-wide deficits. Tells exactly what workshops to run.</p>
+            <div style="font-size: 12px;">
+              <div style="display: flex; justify-content: space-between; color: #94a3b8; margin-bottom: 3px;"><span>Docker & K8s</span><span style="color: var(--rose); font-weight: 700;">68%</span></div>
+              <div class="progress-bar"><div class="progress-fill fill-rose" style="width: 68%;"></div></div>
+              <div style="display: flex; justify-content: space-between; color: #94a3b8; margin-top: 10px; margin-bottom: 3px;"><span>System Design</span><span style="color: var(--amber); font-weight: 700;">54%</span></div>
+              <div class="progress-bar"><div class="progress-fill fill-amber" style="width: 54%;"></div></div>
+              <div style="display: flex; justify-content: space-between; color: #94a3b8; margin-top: 10px; margin-bottom: 3px;"><span>CI/CD</span><span style="color: var(--indigo); font-weight: 700;">42%</span></div>
+              <div class="progress-bar"><div class="progress-fill fill-indigo" style="width: 42%;"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-card mt-sm anim-up anim-up-d3" style="border-color: rgba(251,113,133,0.12); padding: 16px 20px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="icon-box icon-rose" style="width: 38px; height: 38px; font-size: 18px;">🚨</div>
+            <div>
+              <h4 style="color: var(--rose); margin-bottom: 2px; font-size: 13px;">Risk Telemetry — Early Warning</h4>
+              <p style="font-size: 11px; color: #94a3b8;">Flags students &lt;75% who haven't completed action plans. Enables <strong style="color: white;">proactive intervention</strong>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 11: ALUMNI PORTAL ==================== -->
+    <div class="slide" data-section="Alumni Portal">
+      <div class="slide-inner">
+        <div class="badge badge-purple anim-up">🤝 Alumni Network</div>
+        <h2 class="anim-up anim-up-d1">Alumni Portal — <span class="gradient-purple">Closing the Loop</span></h2>
+        <p class="subtitle mb-md anim-up anim-up-d2">Transform passive alumni into active contributors.</p>
+        <div class="grid-2 anim-up anim-up-d3">
+          <div class="glass-card stagger" style="border-color: rgba(167,139,250,0.12); padding: 22px;">
+            <div class="icon-box icon-purple mb-sm" style="font-size: 20px;">🎓</div>
+            <h4 style="color: var(--purple); font-size: 14px;">Mentorship Opt-In</h4>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.6;">Alumni opt into mentoring. Real-time chat via Supabase Realtime enables direct communication with students.</p>
+          </div>
+          <div class="glass-card stagger" style="border-color: rgba(251,191,36,0.12); padding: 22px;">
+            <div class="icon-box icon-amber mb-sm" style="font-size: 20px;">💼</div>
+            <h4 style="color: var(--amber); font-size: 14px;">Job Referrals</h4>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.6;">Alumni post job openings from their companies. Students see them in "Alumni Referrals" — direct hiring pipeline.</p>
+          </div>
+          <div class="glass-card stagger" style="border-color: rgba(251,113,133,0.12); padding: 22px;">
+            <div class="icon-box icon-rose mb-sm" style="font-size: 20px;">❤️</div>
+            <h4 style="color: var(--rose); font-size: 14px;">Donations & Fundraising</h4>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.6;">Donation campaigns for institutional improvements. Gamified engagement scoring encourages participation.</p>
+          </div>
+          <div class="glass-card stagger" style="border-color: rgba(34,211,238,0.12); padding: 22px;">
+            <div class="icon-box icon-cyan mb-sm" style="font-size: 20px;">📊</div>
+            <h4 style="color: var(--cyan); font-size: 14px;">Engagement Scoring</h4>
+            <p style="font-size: 12px; color: #94a3b8; line-height: 1.6;">Each alumni gets a score from referrals, mentorship, donations. "Top Contributor" badges drive engagement.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 12: ECOSYSTEM ==================== -->
+    <div class="slide" data-section="Ecosystem">
+      <div class="slide-inner">
+        <div class="badge badge-cyan anim-up"><span class="dot"></span> Connected Ecosystem</div>
+        <h2 class="anim-up anim-up-d1">How Everything <span class="gradient-text">Connects</span></h2>
+        <div class="glass-card mt-md anim-up anim-up-d2" style="padding: 28px;">
+          <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center;">
+            <div class="text-center">
+              <div style="font-size: 10px; color: var(--cyan); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">Student Actions</div>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div class="flow-chip" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.12); color: var(--cyan); padding: 7px 12px; font-size: 11px;">Uploads Resume</div>
+                <div style="color: #1e293b; font-size: 10px;">↓</div>
+                <div class="flow-chip" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.12); color: var(--cyan); padding: 7px 12px; font-size: 11px;">Gets AI Score</div>
+                <div style="color: #1e293b; font-size: 10px;">↓</div>
+                <div class="flow-chip" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.12); color: var(--cyan); padding: 7px 12px; font-size: 11px;">Completes Action Plan</div>
+                <div style="color: #1e293b; font-size: 10px;">↓</div>
+                <div class="flow-chip" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.12); color: var(--cyan); padding: 7px 12px; font-size: 11px;">AI Interview Practice</div>
+                <div style="color: #1e293b; font-size: 10px;">↓</div>
+                <div class="flow-chip" style="background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.2); color: var(--emerald); padding: 7px 12px; font-size: 11px; font-weight: 800;">Gets Placed! 🎉</div>
+              </div>
+            </div>
+            <div class="text-center">
+              <div class="eco-center">
+                <div style="font-size: 22px;">🤖</div>
+                <div style="font-size: 9px; font-weight: 800; color: var(--cyan); margin-top: 3px;">GEMINI AI</div>
+                <div style="font-size: 8px; color: #64748b; margin-top: 1px;">Central Engine</div>
+              </div>
+            </div>
+            <div class="text-center">
+              <div style="font-size: 10px; color: var(--amber); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">Admin Gets</div>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div class="flow-chip" style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.12); color: var(--amber); padding: 7px 12px; font-size: 11px;">Real-Time KPIs</div>
+                <div style="color: #1e293b; font-size: 10px;">↓</div>
+                <div class="flow-chip" style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.12); color: var(--amber); padding: 7px 12px; font-size: 11px;">Batch Skill Gaps</div>
+                <div style="color: #1e293b; font-size: 10px;">↓</div>
+                <div class="flow-chip" style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.12); color: var(--amber); padding: 7px 12px; font-size: 11px;">At-Risk Alerts</div>
+                <div style="color: #1e293b; font-size: 10px;">↓</div>
+                <div class="flow-chip" style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.12); color: var(--amber); padding: 7px 12px; font-size: 11px;">NAAC Reports</div>
+                <div style="color: #1e293b; font-size: 10px;">↓</div>
+                <div class="flow-chip" style="background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.2); color: var(--emerald); padding: 7px 12px; font-size: 11px; font-weight: 800;">↑ Placement Rate 📈</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); text-align: center;">
+            <div style="display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;">
+              <span class="flow-chip" style="background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.12); color: var(--purple);">🎓 Alumni Referrals</span>
+              <span class="flow-arrow">→</span>
+              <span style="font-size: 11px; color: #64748b;">Students hired</span>
+              <span class="flow-arrow">→</span>
+              <span style="font-size: 11px; color: #64748b;">Become alumni</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-chip" style="background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.2); color: var(--emerald); font-weight: 800;">🔄 Cycle Repeats</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 13: SECURITY ==================== -->
+    <div class="slide" data-section="Security">
+      <div class="slide-inner">
+        <div class="badge badge-rose anim-up">🔒 Security</div>
+        <h2 class="anim-up anim-up-d1">Enterprise-Grade <span class="gradient-rose">Security</span></h2>
+        <div class="grid-2 mt-md anim-up anim-up-d2">
+          <div class="glass-card stagger" style="padding: 22px;">
+            <h4 style="color: var(--emerald); margin-bottom: 14px; font-size: 14px;">4 Layers of Protection</h4>
+            <div class="flow-step" style="margin-bottom: 12px;">
+              <div class="flow-num flow-num-cyan" style="width: 30px; height: 30px; font-size: 11px;">1</div>
+              <div><h4 style="font-size: 12px; color: white;">Supabase Auth</h4><p style="font-size: 10px; color: #94a3b8;">JWT tokens + role detection across 3 tables.</p></div>
+            </div>
+            <div class="flow-step" style="margin-bottom: 12px;">
+              <div class="flow-num flow-num-emerald" style="width: 30px; height: 30px; font-size: 11px;">2</div>
+              <div><h4 style="font-size: 12px; color: white;">Row-Level Security (RLS)</h4><p style="font-size: 10px; color: #94a3b8;">PostgreSQL policies at database level.</p></div>
+            </div>
+            <div class="flow-step" style="margin-bottom: 12px;">
+              <div class="flow-num flow-num-indigo" style="width: 30px; height: 30px; font-size: 11px;">3</div>
+              <div><h4 style="font-size: 12px; color: white;">API-Level Auth</h4><p style="font-size: 10px; color: #94a3b8;">Every admin API checks identity + admin_profiles.</p></div>
+            </div>
+            <div class="flow-step" style="margin-bottom: 0;">
+              <div class="flow-num flow-num-rose" style="width: 30px; height: 30px; font-size: 11px;">4</div>
+              <div><h4 style="font-size: 12px; color: white;">Service Role Isolation</h4><p style="font-size: 10px; color: #94a3b8;">Elevated key server-side only.</p></div>
+            </div>
+          </div>
+          <div class="stagger">
+            <div class="glass-card" style="margin-bottom: 12px; border-color: rgba(52,211,153,0.12); padding: 18px;">
+              <h4 style="color: var(--emerald); margin-bottom: 10px; font-size: 13px;">Data Access Matrix</h4>
+              <table style="width: 100%; font-size: 11px;">
+                <tr style="color: #64748b;"><th style="padding: 6px; text-align: left; border-bottom: 1px solid var(--border);">Data</th><th style="padding: 6px; text-align: center; border-bottom: 1px solid var(--border);">Student</th><th style="padding: 6px; text-align: center; border-bottom: 1px solid var(--border);">Alumni</th><th style="padding: 6px; text-align: center; border-bottom: 1px solid var(--border);">Admin</th></tr>
+                <tr style="color: #94a3b8;"><td style="padding: 6px;">Own Profile</td><td style="padding: 6px; text-align: center;" class="check">✓</td><td style="padding: 6px; text-align: center;" class="check">✓</td><td style="padding: 6px; text-align: center;" class="check">✓</td></tr>
+                <tr style="color: #94a3b8;"><td style="padding: 6px;">Own Scans</td><td style="padding: 6px; text-align: center;" class="check">✓</td><td style="padding: 6px; text-align: center;" class="cross">✗</td><td style="padding: 6px; text-align: center;" class="check">✓</td></tr>
+                <tr style="color: #94a3b8;"><td style="padding: 6px;">All Students</td><td style="padding: 6px; text-align: center;" class="cross">✗</td><td style="padding: 6px; text-align: center;" class="cross">✗</td><td style="padding: 6px; text-align: center;" class="check">✓</td></tr>
+                <tr style="color: #94a3b8;"><td style="padding: 6px;">Analytics</td><td style="padding: 6px; text-align: center;" class="cross">✗</td><td style="padding: 6px; text-align: center;" class="cross">✗</td><td style="padding: 6px; text-align: center;" class="check">✓</td></tr>
+              </table>
+            </div>
+            <div class="glass-card-sm" style="border-color: rgba(34,211,238,0.1); padding: 14px;">
+              <p style="font-size: 11px; color: #94a3b8;"><strong style="color: var(--cyan);">Auto Retry:</strong> Gemini API includes 503 retry logic (3 attempts, 2s delay) for zero dropped analyses.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 14: NAAC ==================== -->
+    <div class="slide" data-section="NAAC Compliance">
+      <div class="slide-inner">
+        <div class="badge badge-emerald anim-up">📋 Accreditation Ready</div>
+        <h2 class="anim-up anim-up-d1">NAAC/NBA <span class="gradient-emerald">One-Click Export</span></h2>
+        <p class="subtitle mb-md anim-up anim-up-d2">Weeks of manual data compilation → one button click.</p>
+        <div class="grid-2 anim-up anim-up-d3">
+          <div class="glass-card stagger" style="border-color: rgba(52,211,153,0.12); padding: 22px;">
+            <h4 style="color: var(--emerald); margin-bottom: 12px; font-size: 14px;">Report Contents</h4>
+            <ul class="point-list emerald">
+              <li>Total registered students count</li>
+              <li>Total ATS scans conducted</li>
+              <li>Average match score %</li>
+              <li>Students ≥75% threshold</li>
+              <li>AI interviews completed</li>
+              <li>Top 10 batch-wide skill deficits</li>
+              <li>Student-wise scan telemetry</li>
+            </ul>
+          </div>
+          <div class="stagger">
+            <div class="glass-card" style="margin-bottom: 12px; background: linear-gradient(180deg, rgba(15,23,42,0.8), rgba(6,12,30,0.9)); padding: 20px;">
+              <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;">CSV Preview</div>
+              <div style="font-family: monospace; font-size: 10px; color: #64748b; line-height: 1.7; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;">
+                <span style="color: var(--cyan);">NAAC/NBA Placement Report</span><br>
+                <span style="color: var(--cyan);">IMED Bharati Vidyapeeth</span><br><br>
+                <span style="color: #94a3b8;">Students:</span> <span style="color: white;">245</span><br>
+                <span style="color: #94a3b8;">ATS Scans:</span> <span style="color: white;">1,847</span><br>
+                <span style="color: #94a3b8;">Avg Match:</span> <span style="color: var(--emerald);">72%</span><br>
+                <span style="color: #94a3b8;">Ready ≥75%:</span> <span style="color: var(--emerald);">168</span><br>
+              </div>
+            </div>
+            <div class="glass-card-sm" style="border-color: rgba(52,211,153,0.1); padding: 14px;">
+              <p style="font-size: 11px; color: #94a3b8;">Two types: <strong style="color: var(--emerald);">NAAC Report</strong> + <strong style="color: var(--cyan);">Corporate Roster</strong> (pre-vetted student list for HR).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 15: BENEFITS TO INSTITUTE ==================== -->
+    <div class="slide" data-section="Institute Benefits">
+      <div class="slide-inner">
+        <div class="badge badge-amber anim-up">🏛️ Institutional Impact</div>
+        <h2 class="anim-up anim-up-d1">Benefits to <span class="gradient-text">IMED</span></h2>
+        <div class="grid-2 mt-md anim-up anim-up-d2">
+          <div class="glass-card text-center stagger" style="border-color: rgba(52,211,153,0.12);">
+            <div style="font-size: 44px; font-weight: 900; color: var(--emerald); line-height: 1;">+14.2%</div>
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 6px;">Projected increase in Day-1 hires</div>
+          </div>
+          <div class="glass-card text-center stagger" style="border-color: rgba(34,211,238,0.12);">
+            <div style="font-size: 44px; font-weight: 900; color: var(--cyan); line-height: 1;">90%</div>
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 6px;">NAAC report time saved (weeks → minutes)</div>
+          </div>
+        </div>
+        <div class="grid-2 mt-sm anim-up anim-up-d3">
+          <div class="glass-card-sm stagger" style="padding: 18px;">
+            <div class="icon-box icon-amber mb-sm" style="font-size: 16px;">📊</div>
+            <h4 style="font-size: 13px; color: white;">Data-Driven Training</h4>
+            <p style="font-size: 11px; color: #64748b; margin-top: 3px;">Skill Radar tells you exactly what workshops to run.</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 18px;">
+            <div class="icon-box icon-emerald mb-sm" style="font-size: 16px;">🏆</div>
+            <h4 style="font-size: 13px; color: white;">Higher NAAC/NBA Scores</h4>
+            <p style="font-size: 11px; color: #64748b; margin-top: 3px;">AI-powered analytics demonstrate institutional commitment.</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 18px;">
+            <div class="icon-box icon-rose mb-sm" style="font-size: 16px;">🚨</div>
+            <h4 style="font-size: 13px; color: white;">Early Risk Detection</h4>
+            <p style="font-size: 11px; color: #64748b; margin-top: 3px;">Identify struggling students BEFORE the drive.</p>
+          </div>
+          <div class="glass-card-sm stagger" style="padding: 18px;">
+            <div class="icon-box icon-purple mb-sm" style="font-size: 16px;">🔗</div>
+            <h4 style="font-size: 13px; color: white;">Alumni Revenue Stream</h4>
+            <p style="font-size: 11px; color: #64748b; margin-top: 3px;">Built-in donations create new revenue from alumni.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 16: STUDENT BENEFITS ==================== -->
+    <div class="slide" data-section="Student Benefits">
+      <div class="slide-inner">
+        <div class="badge badge-cyan anim-up">🎓 Student Impact</div>
+        <h2 class="anim-up anim-up-d1">Benefits to <span class="gradient-text">Students</span></h2>
+        <div class="grid-3 mt-md anim-up anim-up-d2" style="gap: 12px;">
+          <div class="glass-card text-center stagger" style="padding: 22px;">
+            <div style="font-size: 32px; margin-bottom: 8px;">🎯</div>
+            <h4 style="color: var(--cyan); font-size: 13px;">Know Before You Go</h4>
+            <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-top: 6px;">Know exact match % before the drive. Go with confidence or fix gaps.</p>
+          </div>
+          <div class="glass-card text-center stagger" style="padding: 22px;">
+            <div style="font-size: 32px; margin-bottom: 8px;">📝</div>
+            <h4 style="color: var(--emerald); font-size: 13px;">48-Hour Action Plans</h4>
+            <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-top: 6px;">AI generates targeted remediation per student, per company.</p>
+          </div>
+          <div class="glass-card text-center stagger" style="padding: 22px;">
+            <div style="font-size: 32px; margin-bottom: 8px;">🎤</div>
+            <h4 style="color: var(--indigo); font-size: 13px;">Practice Real Interviews</h4>
+            <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-top: 6px;">Questions from the same JD the company uses.</p>
+          </div>
+          <div class="glass-card text-center stagger" style="padding: 22px;">
+            <div style="font-size: 32px; margin-bottom: 8px;">💼</div>
+            <h4 style="color: var(--purple); font-size: 13px;">Alumni Referral Pipeline</h4>
+            <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-top: 6px;">Direct access to jobs from IMED alumni at top companies.</p>
+          </div>
+          <div class="glass-card text-center stagger" style="padding: 22px;">
+            <div style="font-size: 32px; margin-bottom: 8px;">📊</div>
+            <h4 style="color: var(--amber); font-size: 13px;">Gamified Improvement</h4>
+            <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-top: 6px;">Leaderboard + tracking creates healthy competition.</p>
+          </div>
+          <div class="glass-card text-center stagger" style="padding: 22px;">
+            <div style="font-size: 32px; margin-bottom: 8px;">🎥</div>
+            <h4 style="color: var(--rose); font-size: 13px;">Soft Skills Training</h4>
+            <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin-top: 6px;">Video analysis of communication and presentation.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 17: COMPETITIVE EDGE ==================== -->
+    <div class="slide" data-section="Comparison">
+      <div class="slide-inner">
+        <div class="badge badge-indigo anim-up">🏆 Competitive Edge</div>
+        <h2 class="anim-up anim-up-d1">Why This Doesn't <span class="gradient-text">Exist Elsewhere</span></h2>
+        <div class="glass-card mt-md anim-up anim-up-d2" style="padding: 0; overflow: hidden;">
+          <table class="comp-table">
+            <thead><tr><th>Feature</th><th>Generic Portals</th><th>IMED Placement OS</th></tr></thead>
+            <tbody>
+              <tr><td>Resume Scoring</td><td class="cross">Manual review</td><td class="check">AI 0-100% with Gemini</td></tr>
+              <tr><td>Interview Prep</td><td class="cross">Static question banks</td><td class="check">RAG from real JDs</td></tr>
+              <tr><td>Skill Gaps</td><td class="cross">None</td><td class="check">Per-student + batch radar</td></tr>
+              <tr><td>Action Plans</td><td class="cross">None</td><td class="check">AI 48hr remediation</td></tr>
+              <tr><td>NAAC Reports</td><td class="cross">Weeks of Excel</td><td class="check">One-click CSV</td></tr>
+              <tr><td>Risk Detection</td><td class="cross">None</td><td class="check">Real-time flagging</td></tr>
+              <tr><td>Alumni</td><td class="cross">Separate or none</td><td class="check">Built-in ecosystem</td></tr>
+              <tr><td>Job Matching</td><td class="cross">Keywords</td><td class="check">pgvector semantic</td></tr>
+              <tr><td>Predictive Analytics</td><td class="cross">None</td><td class="check">AI-forecasted rates</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 18: AUTOMATION ==================== -->
+    <div class="slide" data-section="Automation">
+      <div class="slide-inner">
+        <div class="badge badge-indigo anim-up">⚙️ Automation</div>
+        <h2 class="anim-up anim-up-d1">Runs While <span class="gradient-text">You Sleep</span></h2>
+        <p class="subtitle mb-md anim-up anim-up-d2">Scheduled jobs and real-time features that work 24/7.</p>
+        <div class="grid-2 anim-up anim-up-d3">
+          <div class="glass-card stagger" style="border-color: rgba(129,140,248,0.12); padding: 22px;">
+            <h4 style="color: var(--indigo); margin-bottom: 14px; font-size: 14px;">🗓️ Automated Cron Jobs</h4>
+            <div class="flow-step" style="margin-bottom: 12px;">
+              <div class="flow-num flow-num-cyan" style="width: 30px; height: 30px; font-size: 10px;">W</div>
+              <div><h4 style="font-size: 12px; color: white;">Weekly Job Ingestion</h4><p style="font-size: 10px; color: #94a3b8;">Every Monday 6 AM — auto-ingests + vectorizes new JDs.</p></div>
+            </div>
+            <div class="flow-step" style="margin-bottom: 0;">
+              <div class="flow-num flow-num-purple" style="width: 30px; height: 30px; font-size: 10px;">M</div>
+              <div><h4 style="font-size: 12px; color: white;">Monthly Alumni Sync</h4><p style="font-size: 10px; color: #94a3b8;">1st of every month — syncs alumni data.</p></div>
+            </div>
+          </div>
+          <div class="glass-card stagger" style="border-color: rgba(52,211,153,0.12); padding: 22px;">
+            <h4 style="color: var(--emerald); margin-bottom: 14px; font-size: 14px;">⚡ Real-Time Features</h4>
+            <div class="flow-step" style="margin-bottom: 12px;">
+              <div class="flow-num flow-num-emerald" style="width: 30px; height: 30px; font-size: 14px;">💬</div>
+              <div><h4 style="font-size: 12px; color: white;">Live Chat Messaging</h4><p style="font-size: 10px; color: #94a3b8;">Supabase Realtime — instant messages. No polling.</p></div>
+            </div>
+            <div class="flow-step" style="margin-bottom: 0;">
+              <div class="flow-num flow-num-amber" style="width: 30px; height: 30px; font-size: 14px;">🔔</div>
+              <div><h4 style="font-size: 12px; color: white;">Push Notifications</h4><p style="font-size: 10px; color: #94a3b8;">In-app bell for drives, referrals, mentorship.</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-card-sm mt-sm anim-up anim-up-d4" style="border-color: rgba(34,211,238,0.08); display: flex; align-items: center; gap: 10px; padding: 14px 18px;">
+          <span style="font-size: 16px;">🌐</span>
+          <p style="font-size: 11px; color: #94a3b8;"><strong style="color: var(--cyan);">Deployed on Vercel</strong> — Zero-downtime, edge CDN, automatic SSL, serverless scaling. Available 24/7.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 19: DEMO PLAN ==================== -->
+    <div class="slide" data-section="Demo">
+      <div class="slide-inner">
+        <div class="badge badge-emerald anim-up">🎬 Live Demo</div>
+        <h2 class="anim-up anim-up-d1">Demo <span class="gradient-emerald">Flow Plan</span></h2>
+        <div class="glass-card mt-md anim-up anim-up-d2" style="padding: 24px;">
+          <div class="flow-step stagger">
+            <div class="flow-num flow-num-cyan">1</div>
+            <div><h4 style="font-size: 14px; color: white;">Show the Landing Page</h4><p style="font-size: 12px; color: #94a3b8;">Open homepage. Walk through bento grid features.</p></div>
+          </div>
+          <div class="flow-step stagger">
+            <div class="flow-num flow-num-indigo">2</div>
+            <div><h4 style="font-size: 14px; color: white;">Login as Student → Dashboard</h4><p style="font-size: 12px; color: #94a3b8;">Show readiness gauge, KPI cards, recent scans.</p></div>
+          </div>
+          <div class="flow-step stagger">
+            <div class="flow-num flow-num-emerald">3</div>
+            <div><h4 style="font-size: 14px; color: white;">Run AI Gap Analysis (Live!) ⭐</h4><p style="font-size: 12px; color: #94a3b8;">Upload real PDF. Select company. Watch score appear. <strong style="color: white;">This is the money moment.</strong></p></div>
+          </div>
+          <div class="flow-step stagger">
+            <div class="flow-num flow-num-amber">4</div>
+            <div><h4 style="font-size: 14px; color: white;">Show AI Interview</h4><p style="font-size: 12px; color: #94a3b8;">Start voice/chat interview. Show company-specific questions.</p></div>
+          </div>
+          <div class="flow-step stagger">
+            <div class="flow-num flow-num-rose">5</div>
+            <div><h4 style="font-size: 14px; color: white;">Switch to Admin ⭐</h4><p style="font-size: 12px; color: #94a3b8;">KPIs → Skill Radar → Risk Telemetry → NAAC Export → Download CSV.</p></div>
+          </div>
+          <div class="flow-step stagger" style="margin-bottom: 0;">
+            <div class="flow-num flow-num-purple">6</div>
+            <div><h4 style="font-size: 14px; color: white;">Show Alumni Portal</h4><p style="font-size: 12px; color: #94a3b8;">Engagement score, mentorship, referrals flow.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 20: ROI ==================== -->
+    <div class="slide" data-section="ROI">
+      <div class="slide-inner">
+        <div class="badge badge-emerald anim-up">💰 Return on Investment</div>
+        <h2 class="anim-up anim-up-d1">Projected <span class="gradient-emerald">Impact</span></h2>
+        <div class="grid-4 mt-md anim-up anim-up-d2">
+          <div class="glass-card text-center stagger" style="border-color: rgba(34,211,238,0.12);">
+            <div class="stat-value text-cyan">+14%</div>
+            <div class="stat-label">Day-1 Placement ↑</div>
+          </div>
+          <div class="glass-card text-center stagger" style="border-color: rgba(52,211,153,0.12);">
+            <div class="stat-value text-emerald">90%</div>
+            <div class="stat-label">NAAC Time Saved</div>
+          </div>
+          <div class="glass-card text-center stagger" style="border-color: rgba(129,140,248,0.12);">
+            <div class="stat-value text-indigo">100%</div>
+            <div class="stat-label">Students AI Prepped</div>
+          </div>
+          <div class="glass-card text-center stagger" style="border-color: rgba(167,139,250,0.12);">
+            <div class="stat-value text-purple">24/7</div>
+            <div class="stat-label">Always Online</div>
+          </div>
+        </div>
+        <div class="grid-2 mt-md anim-up anim-up-d3">
+          <div class="glass-card stagger" style="border-color: rgba(52,211,153,0.12); padding: 22px;">
+            <h4 style="color: var(--emerald); margin-bottom: 10px; font-size: 14px;">📈 Revenue Potential</h4>
+            <ul class="point-list emerald">
+              <li>Alumni donations via built-in fundraising</li>
+              <li>License to other BV institutes as SaaS</li>
+              <li>Corporates pay for pre-vetted talent</li>
+              <li>Reduced placement cell overhead</li>
+            </ul>
+          </div>
+          <div class="glass-card stagger" style="border-color: rgba(34,211,238,0.12); padding: 22px;">
+            <h4 style="color: var(--cyan); margin-bottom: 10px; font-size: 14px;">🏅 Competitive Advantage</h4>
+            <ul class="point-list cyan">
+              <li>First BV institute with AI placements</li>
+              <li>Attracts better students & companies</li>
+              <li>Sets benchmark for Indian education</li>
+              <li>NAAC/NBA accreditation differentiator</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SLIDE 21: CTA ==================== -->
+    <div class="slide" data-section="Next Steps">
+      <div class="slide-inner text-center">
+        <div class="badge badge-cyan anim-up"><span class="dot"></span> Next Steps</div>
+        <h1 class="anim-up anim-up-d1" style="font-size: 44px;">
+          Ready to <span class="gradient-text">Transform</span><br>IMED Placements?
+        </h1>
+        <p class="subtitle anim-up anim-up-d2" style="margin: 20px auto;">
+          The platform is built, tested, and ready for deployment. We propose a pilot with the current batch, followed by full rollout.
+        </p>
+        <div class="grid-3 mt-lg anim-up anim-up-d3" style="max-width: 600px; margin-left: auto; margin-right: auto;">
+          <div class="glass-card-sm text-center" style="border-color: rgba(34,211,238,0.2);">
+            <div style="font-size: 12px; font-weight: 800; color: var(--cyan);">Phase 1</div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 3px;">Pilot with 1 batch</div>
+          </div>
+          <div class="glass-card-sm text-center" style="border-color: rgba(129,140,248,0.2);">
+            <div style="font-size: 12px; font-weight: 800; color: var(--indigo);">Phase 2</div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 3px;">Full IMED rollout</div>
+          </div>
+          <div class="glass-card-sm text-center" style="border-color: rgba(52,211,153,0.2);">
+            <div style="font-size: 12px; font-weight: 800; color: var(--emerald);">Phase 3</div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 3px;">License to BV institutes</div>
+          </div>
+        </div>
+        <div class="anim-up anim-up-d4" style="margin-top: 40px;">
+          <div style="font-size: 34px; font-weight: 900; color: white; letter-spacing: -1.5px;">
+            Let's make IMED the <span class="gradient-text">gold standard</span><span class="typing-cursor"></span>
+          </div>
+          <p style="font-size: 13px; color: #334155; margin-top: 14px;">Thank you for your time and consideration.</p>
+          <p class="anim-up anim-up-d5" style="font-size: 11px; color: #1e293b; margin-top: 6px;">Presented by • Avadhut Gurav &amp; Team</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- NAVIGATION BAR -->
+  <!-- ============================================================ -->
+  <div class="nav-bar">
+    <button class="nav-btn nav-btn-prev" id="prevBtn" onclick="prevSlide()">← Prev</button>
+    <div class="slide-counter" id="slideCounter">1 / 21</div>
+    <div class="progress-track">
+      <div class="progress-fill-nav" id="progressFill" style="width: 4.76%;"></div>
+    </div>
+    <button class="nav-btn nav-btn-next" id="nextBtn" onclick="nextSlide()">Next →</button>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- JAVASCRIPT -->
+  <!-- ============================================================ -->
+  <script>
+    // === Particles ===
+    (function createParticles() {
+      const container = document.getElementById('particles');
+      for (let i = 0; i < 30; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (8 + Math.random() * 12) + 's';
+        p.style.animationDelay = Math.random() * 10 + 's';
+        p.style.opacity = (0.1 + Math.random() * 0.3).toString();
+        if (Math.random() > 0.5) p.style.background = 'rgba(129,140,248,0.25)';
+        container.appendChild(p);
+      }
+    })();
+
+    // === Slide Navigation ===
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const counter = document.getElementById('slideCounter');
+    const progressFill = document.getElementById('progressFill');
+    const sectionTitle = document.getElementById('section-title');
+
+    function showSlide(index) {
+      slides.forEach((slide, i) => {
+        slide.classList.remove('active', 'exit-left');
+        if (i < index) slide.classList.add('exit-left');
+      });
+      slides[index].classList.add('active');
+      slides[index].scrollTop = 0; // Reset scroll on slide change
+      counter.textContent = `${index + 1} / ${totalSlides}`;
+      progressFill.style.width = `${((index + 1) / totalSlides) * 100}%`;
+      sectionTitle.textContent = slides[index].getAttribute('data-section') || '';
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) { currentSlide++; showSlide(currentSlide); }
+    }
+    function prevSlide() {
+      if (currentSlide > 0) { currentSlide--; showSlide(currentSlide); }
+    }
+
+    // Keyboard
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); nextSlide(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); prevSlide(); }
+      else if (e.key === 'Home') { currentSlide = 0; showSlide(0); }
+      else if (e.key === 'End') { currentSlide = totalSlides - 1; showSlide(currentSlide); }
+    });
+
+    // Touch/swipe
+    let touchStartX = 0;
+    document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+    document.addEventListener('touchend', (e) => {
+      const diff = touchStartX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 60) { diff > 0 ? nextSlide() : prevSlide(); }
+    });
+
+    showSlide(0);
+  </script>
+
+</body>
+</html>

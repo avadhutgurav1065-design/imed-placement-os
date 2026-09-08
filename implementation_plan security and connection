@@ -1,0 +1,91 @@
+# IMED Placement OS - Production Readiness & Security Plan
+
+This document outlines the deep-dive research findings and the step-by-step implementation plan to transform the IMED Placement OS into a highly secure, robust, and fully interconnected platform suitable for college-wide production use.
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Major Security Upgrade**: We will be adding Edge Middleware to completely lock down the application. Once implemented, it will be impossible to access any `/student`, `/admin`, or `/alumni` route without a valid session.
+> 
+> **Role Enforcement**: We will migrate the application to strictly rely on Supabase JWT `user_metadata.role`. This means a student cannot accidentally (or maliciously) access the admin portal.
+
+## Open Questions
+
+> [!WARNING]  
+> 1. Do you want Alumni to have the ability to directly approve students for referrals, or should that go through the Admin first?
+> 2. For the AI features (Resume Builder, Mock Interviews), should we add rate-limiting (e.g., max 5 AI interviews per day per student) to prevent massive API billing costs?
+
+---
+
+## Deep-Dive Research Findings
+
+1. **Critical Security Hole (Missing Middleware)**: Currently, the application lacks a Next.js `middleware.ts` file. While Supabase RLS protects the raw data, the frontend UI routes (like `/admin/students`) are technically open to unauthenticated visitors. They might see a broken page, but they shouldn't be able to access the route at all.
+2. **Inefficient Login Routing**: `app/login/page.tsx` currently queries all three profile tables sequentially to figure out where to redirect the user. This causes slow logins. We can optimize this by reading the role directly from the authenticated JWT token.
+3. **Portal Disconnects**:
+   - **Alumni -> Student**: Alumni can post referrals and donations, but there isn't a strong notification system connecting them to the students.
+   - **Admin -> Student**: Admins can see analytics, but we need a unified system where Admins can instantly broadcast "Campus Drives" that immediately ping the student's dashboard.
+4. **API Vulnerabilities**: Several routes in `app/api/` need stronger session validation to ensure malicious users can't trigger AI generations or scrape jobs without proper authorization.
+
+---
+
+## Proposed Changes
+
+### 1. Security & Edge Protection
+
+We will implement impenetrable route protection and optimize the login flow.
+
+#### [NEW] [middleware.ts](file:///c:/AI%20agent%20project/imed-placement-os/middleware.ts)
+- Create a Next.js Edge Middleware to intercept every request.
+- Verify the Supabase session token.
+- Enforce strict Role-Based Access Control (RBAC):
+  - Redirect `/admin/*` to `/login` if `role !== 'admin'`
+  - Redirect `/student/*` to `/login` if `role !== 'student'`
+  - Redirect `/alumni/*` to `/login` if `role !== 'alumni'`
+
+#### [MODIFY] [app/login/page.tsx](file:///c:/AI%20agent%20project/imed-placement-os/app/login/page.tsx)
+- Refactor the login logic to read the user's role instantly from `data.user.user_metadata.role`.
+- Remove the sequential DB queries for faster, bug-free logins.
+
+---
+
+### 2. Portal Interconnectivity
+
+We will stitch the three portals together so data flows seamlessly between stakeholders.
+
+#### [MODIFY] [app/(dashboard)/admin/drives/page.tsx](file:///c:/AI%20agent%20project/imed-placement-os/app/(dashboard)/admin/drives/page.tsx)
+- Enhance the Admin Drive creation UI so that when a drive is created, it automatically triggers a matching algorithm to identify eligible students based on their `readiness_score` and `branch`.
+
+#### [MODIFY] [app/(dashboard)/student/page.tsx](file:///c:/AI%20agent%20project/imed-placement-os/app/(dashboard)/student/page.tsx)
+- Add a "Live Opportunities" feed that aggregates:
+  1. Active Campus Drives (from Admin).
+  2. Active Job Referrals (from Alumni).
+- Add 1-click apply buttons that link the student to the opportunity.
+
+#### [MODIFY] [app/(dashboard)/alumni/referrals/page.tsx](file:///c:/AI%20agent%20project/imed-placement-os/app/(dashboard)/alumni/referrals/page.tsx)
+- Create a streamlined form for Alumni to post job referrals that instantly appear on the Student dashboard.
+
+---
+
+### 3. Data Integrity & API Hardening
+
+We will secure the backend API routes to ensure they cannot be exploited.
+
+#### [MODIFY] [app/api/student/analyze-video/route.ts](file:///c:/AI%20agent%20project/imed-placement-os/app/api/student/analyze-video/route.ts)
+- Add strict Supabase session validation at the top of the route.
+- Ensure the user requesting the AI analysis is actually a `student`.
+
+#### [MODIFY] [app/api/admin/predictive-analytics/route.ts](file:///c:/AI%20agent%20project/imed-placement-os/app/api/admin/predictive-analytics/route.ts)
+- Add strict role validation ensuring only `admin` JWTs can access predictive data.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+- Run `npm run lint` and `npx tsc --noEmit` to ensure no typing breaks during the refactor.
+- Run `npm run build` to verify the middleware doesn't break static generation.
+
+### Manual Verification
+1. **Security Test**: Attempt to manually navigate to `/admin` while logged in as `student1@imed.edu`. The middleware should instantly kick the user back to `/student` or `/login`.
+2. **Speed Test**: Verify that logging in is instantaneous due to the JWT metadata optimization.
+3. **Flow Test**: Log in as `alumni1@imed.edu`, post a referral, then log in as `student1@imed.edu` and verify the referral appears on the dashboard immediately.
