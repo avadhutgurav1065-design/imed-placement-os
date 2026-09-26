@@ -37,6 +37,10 @@ export function InstallPWA({
       setIsInstallable(true);
     };
 
+    if (typeof window !== 'undefined' && (window as any).deferredPWAEvent) {
+      handleBeforeInstallPrompt((window as any).deferredPWAEvent);
+    }
+
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     window.addEventListener("appinstalled", () => setIsInstallable(false));
 

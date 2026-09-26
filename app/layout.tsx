@@ -40,6 +40,11 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              window.deferredPWAEvent = null;
+              window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                window.deferredPWAEvent = e;
+              });
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                   navigator.serviceWorker.register('/sw.js').catch(() => {});
