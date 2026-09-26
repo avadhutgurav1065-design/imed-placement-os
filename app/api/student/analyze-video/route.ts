@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     }
 
     // Use Gemini 3.6 Flash for fast multimodal processing
-    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
 
     const prompt = `
       You are an expert HR recruiter evaluating a student's mock interview response.

@@ -38,12 +38,12 @@ export async function POST(req: Request) {
     let feedback = "";
     
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
       const result = await model.generateContent(evaluationPrompt);
       feedback = result.response.text().trim();
     } catch (e) {
       // Fallback for more robust reasoning if flash fails JSON format
-      const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+      const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
       const result = await fallbackModel.generateContent(evaluationPrompt);
       feedback = result.response.text().trim();
     }

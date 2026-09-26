@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     }
 
     // 3. GENERATE THE QUESTION
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
     const result = await model.generateContent(systemPrompt);
     const question = result.response.text().trim();
 

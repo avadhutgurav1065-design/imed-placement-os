@@ -1,18 +1,25 @@
-"use client";
+// SERVER COMPONENT - No "use client" = no hydration = immune to browser extensions
+import { cn } from "@/lib/utils";
 
-import Link from "next/link";
-import { GlassCard } from "@/components/shared/GlassCard";
+// Inline GlassCard as a server-compatible component
+function Card({ children, className, ...props }: { children: React.ReactNode; className?: string; [k: string]: any }) {
+  return (
+    <div className={cn("glass-card p-6 glass-hover animate-slide-in-up", className)} {...props}>
+      {children}
+    </div>
+  );
+}
 
 export default function LandingPage() {
+  // Pre-compute the wave elements (no .map needed)
+  const waveHeights = [32, 64, 40, 80, 48, 72, 24, 56];
+
   return (
-    <div suppressHydrationWarning className="min-h-screen bg-[#020617] text-slate-300 relative overflow-hidden font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+    <div className="min-h-screen bg-[#020617] text-slate-300 relative overflow-hidden font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
       
       {/* Dynamic Background Effects */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        {/* Deep background grid */}
         <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
-        
-        {/* Glow Orbs */}
         <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-cyan-600/10 blur-[120px] animate-pulse-ring" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-indigo-600/10 blur-[100px] animate-pulse-ring" style={{ animationDelay: '2s' }} />
         <div className="absolute top-[40%] left-[60%] w-[30vw] h-[30vw] rounded-full bg-emerald-600/5 blur-[80px] animate-pulse-ring" style={{ animationDelay: '1s' }} />
@@ -29,12 +36,12 @@ export default function LandingPage() {
           <span className="font-extrabold text-xl tracking-tight text-white">IMED OS</span>
         </div>
         <div className="flex gap-4">
-          <Link href="/login" className="px-5 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors">
+          <a href="/login" className="px-5 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors">
             Sign In
-          </Link>
-          <Link href="/login" className="px-6 py-2 text-sm font-bold text-slate-900 bg-cyan-400 rounded-full hover:bg-cyan-300 transition-all shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:shadow-[0_0_25px_rgba(34,211,238,0.5)]">
+          </a>
+          <a href="/login" className="px-6 py-2 text-sm font-bold text-slate-900 bg-cyan-400 rounded-full hover:bg-cyan-300 transition-all shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:shadow-[0_0_25px_rgba(34,211,238,0.5)]">
             Access Portal
-          </Link>
+          </a>
         </div>
       </nav>
 
@@ -48,18 +55,18 @@ export default function LandingPage() {
           <h1 className="text-5xl lg:text-7xl font-black text-white leading-tight mb-8 tracking-tighter">
             Bridging the gap between <br className="hidden md:block"/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 animate-shimmer">
-              Campus & Corporate.
+              Campus &amp; Corporate.
             </span>
           </h1>
           <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10 font-medium">
             IMED Placement OS leverages Gemini AI to evaluate student readiness, conduct real-time technical interviews, and match cohorts to ingested corporate requirements with extreme precision.
           </p>
-          <Link 
+          <a 
             href="/login"
             className="inline-block px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-full font-bold text-lg hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] transform hover:-translate-y-1"
           >
             Enter Platform Space
-          </Link>
+          </a>
         </div>
 
         {/* Features: Bento Grid */}
@@ -68,7 +75,7 @@ export default function LandingPage() {
           {/* Feature 1: AI Gap Analyzer (Large) */}
           <div className="md:col-span-2 lg:col-span-2 row-span-2 relative group">
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-indigo-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-            <GlassCard className="h-full border-white/[0.04] hover:border-cyan-500/30 transition-all duration-500 flex flex-col justify-between overflow-hidden">
+            <Card className="h-full border-white/[0.04] hover:border-cyan-500/30 transition-all duration-500 flex flex-col justify-between overflow-hidden">
               <div className="p-4 z-10 relative">
                 <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center mb-6">
                   <svg className="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -77,16 +84,16 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3">AI Gap Analyzer</h3>
                 <p className="text-slate-400 max-w-sm">
-                  Upload a PDF resume. The system vectorizes the text and scores it against real LinkedIn Job Descriptions using Gemini 1.5 Pro, generating a 48-hour remediation plan.
+                  Upload a PDF resume. The system vectorizes the text and scores it against real LinkedIn Job Descriptions using Gemini AI, generating a 48-hour remediation plan.
                 </p>
               </div>
               <div className="absolute bottom-0 right-0 w-2/3 h-2/3 bg-gradient-to-tl from-cyan-900/40 to-transparent blur-xl rounded-tl-full -z-10" />
-            </GlassCard>
+            </Card>
           </div>
 
           {/* Feature 2: Voice Interview (Tall) */}
           <div className="row-span-2 relative group">
-            <GlassCard className="h-full border-white/[0.04] hover:border-emerald-500/30 transition-all duration-500 flex flex-col justify-between bg-gradient-to-b from-slate-900/50 to-emerald-950/20">
+            <Card className="h-full border-white/[0.04] hover:border-emerald-500/30 transition-all duration-500 flex flex-col justify-between bg-gradient-to-b from-slate-900/50 to-emerald-950/20">
               <div className="p-4 relative z-10">
                 <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-6">
                   <svg className="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -99,18 +106,23 @@ export default function LandingPage() {
                 </p>
               </div>
               
-              {/* Decorative Audio Waves */}
+              {/* Decorative Audio Waves - Static HTML, no .map() */}
               <div className="px-8 pb-8 flex items-end gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
-                {[4, 8, 5, 10, 6, 9, 3, 7].map((h, i) => (
-                  <div key={i} className="w-full bg-emerald-500/30 rounded-t-sm" style={{ height: `${h * 8}px`, animation: `pulse-ring 1s infinite alternate ${i * 0.1}s` }} />
-                ))}
+                <div className="w-full bg-emerald-500/30 rounded-t-sm" style={{ height: '32px', animation: 'pulse-ring 1s infinite alternate 0s' }} />
+                <div className="w-full bg-emerald-500/30 rounded-t-sm" style={{ height: '64px', animation: 'pulse-ring 1s infinite alternate 0.1s' }} />
+                <div className="w-full bg-emerald-500/30 rounded-t-sm" style={{ height: '40px', animation: 'pulse-ring 1s infinite alternate 0.2s' }} />
+                <div className="w-full bg-emerald-500/30 rounded-t-sm" style={{ height: '80px', animation: 'pulse-ring 1s infinite alternate 0.3s' }} />
+                <div className="w-full bg-emerald-500/30 rounded-t-sm" style={{ height: '48px', animation: 'pulse-ring 1s infinite alternate 0.4s' }} />
+                <div className="w-full bg-emerald-500/30 rounded-t-sm" style={{ height: '72px', animation: 'pulse-ring 1s infinite alternate 0.5s' }} />
+                <div className="w-full bg-emerald-500/30 rounded-t-sm" style={{ height: '24px', animation: 'pulse-ring 1s infinite alternate 0.6s' }} />
+                <div className="w-full bg-emerald-500/30 rounded-t-sm" style={{ height: '56px', animation: 'pulse-ring 1s infinite alternate 0.7s' }} />
               </div>
-            </GlassCard>
+            </Card>
           </div>
 
           {/* Feature 3: Corporate Roster */}
           <div className="relative group">
-            <GlassCard className="h-full border-white/[0.04] hover:border-indigo-500/30 transition-all duration-500">
+            <Card className="h-full border-white/[0.04] hover:border-indigo-500/30 transition-all duration-500">
               <div className="p-4">
                 <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4">
                   <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -122,12 +134,12 @@ export default function LandingPage() {
                   Admins query the database instantly for all students scoring &gt;75% on a specific Job Profile, generating an exportable NAAC/Corporate roster.
                 </p>
               </div>
-            </GlassCard>
+            </Card>
           </div>
 
           {/* Feature 4: Cohort Radar */}
           <div className="relative group">
-            <GlassCard className="h-full border-white/[0.04] hover:border-rose-500/30 transition-all duration-500">
+            <Card className="h-full border-white/[0.04] hover:border-rose-500/30 transition-all duration-500">
               <div className="p-4">
                 <div className="w-10 h-10 rounded-lg bg-rose-500/10 flex items-center justify-center mb-4">
                   <svg className="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -137,15 +149,15 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Cohort Radar</h3>
                 <p className="text-slate-400 text-xs">
-                  Aggregates all "missing skills" from gap analyses across the entire student batch to prioritize institutional training workshops.
+                  Aggregates all &quot;missing skills&quot; from gap analyses across the entire student batch to prioritize institutional training workshops.
                 </p>
               </div>
-            </GlassCard>
+            </Card>
           </div>
 
           {/* Feature 5: Job Ingestion */}
           <div className="relative group">
-            <GlassCard className="h-full border-white/[0.04] hover:border-amber-500/30 transition-all duration-500">
+            <Card className="h-full border-white/[0.04] hover:border-amber-500/30 transition-all duration-500">
               <div className="p-4">
                 <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center mb-4">
                   <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -157,14 +169,14 @@ export default function LandingPage() {
                   Automated scraping of live LinkedIn requirements. JDs are vectorized and stored for precise embedding-based comparison.
                 </p>
               </div>
-            </GlassCard>
+            </Card>
           </div>
 
         </div>
       </main>
       
       <footer className="border-t border-white/[0.02] py-8 text-center text-slate-500 text-sm relative z-10">
-        IMED Placement OS © 2026. Built with Next.js & Google Gemini.
+        IMED Placement OS © 2026. Built with Next.js &amp; Google Gemini.
       </footer>
     </div>
   );

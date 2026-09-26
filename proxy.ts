@@ -35,7 +35,7 @@ export async function proxy(request: NextRequest) {
 
   // Paths that do not require authentication
   const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/auth");
-  const isPublicApi = pathname === "/api/health" || pathname.startsWith("/api/webhooks");
+  const isPublicApi = pathname === "/api/health" || pathname.startsWith("/api/webhooks") || pathname.startsWith("/api/cron");
 
   if (!user && !isAuthRoute && !isPublicApi && pathname !== "/") {
     const url = request.nextUrl.clone();
@@ -53,17 +53,17 @@ export async function proxy(request: NextRequest) {
 
   // Basic Role-Based Path Protection
   if (user && (pathname.startsWith("/admin") || pathname.startsWith("/alumni") || pathname.startsWith("/student"))) {
-    // Attempt to determine role
+    // FAST PATH: Read role from JWT metadata (set during user creation)
     let role = user.user_metadata?.role;
     
-    // If not in metadata, fetch from DB
+    // SLOW FALLBACK: Only query DB if JWT metadata is missing
     if (!role) {
       const { data: admin } = await supabase.from('admin_profiles').select('id').eq('id', user.id).maybeSingle();
       if (admin) role = 'admin';
       else {
         const { data: alumni } = await supabase.from('alumni_profiles').select('id').eq('id', user.id).maybeSingle();
         if (alumni) role = 'alumni';
-        else role = 'student'; // Default fallback
+        else role = 'student';
       }
     }
 

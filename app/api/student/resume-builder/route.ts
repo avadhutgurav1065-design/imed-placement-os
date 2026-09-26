@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         ]
       };
     } else {
-      const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
       const prompt = `
         You are an expert technical recruiter and resume writer. 
         I am a computer science student looking for a job.

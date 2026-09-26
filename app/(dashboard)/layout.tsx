@@ -18,13 +18,34 @@ const studentNav = [
     ),
   },
   {
-    label: "Gap Analyzer",
-    href: "/student/analyze",
+    label: "My Readiness",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
       </svg>
     ),
+    subItems: [
+      {
+        label: "Skill Matching",
+        href: "/student/analyze",
+      },
+      {
+        label: "Technical Skills",
+        href: "/student/technical-skills",
+      },
+      {
+        label: "Aptitude Skills",
+        href: "/student/aptitude",
+      },
+      {
+        label: "Interview Skills",
+        href: "/student/interview/chat",
+      },
+      {
+        label: "Psychometric Test",
+        href: "/student/psychometric",
+      }
+    ]
   },
   {
     label: "Scan History",
@@ -36,11 +57,20 @@ const studentNav = [
     ),
   },
   {
-    label: "AI Interview",
-    href: "/student/interview",
+    label: "Test Results",
+    href: "/student/assessments",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+    ),
+  },
+  {
+    label: "Live Proctored Interview",
+    href: "/student/interview/live",
+    icon: (
+      <svg className="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
       </svg>
     ),
   },
@@ -72,15 +102,6 @@ const studentNav = [
     ),
   },
   {
-    label: "Soft Skills Analyzer",
-    href: "/student/soft-skills-analyzer",
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
     label: "AI Job Matches",
     href: "/student/job-matches",
     icon: (
@@ -89,15 +110,7 @@ const studentNav = [
       </svg>
     ),
   },
-  {
-    label: "Chat Interview",
-    href: "/student/interview/chat",
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-      </svg>
-    ),
-  },
+
 ];
 
 const adminNav = [
@@ -161,6 +174,16 @@ const adminNav = [
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    ),
+  },
+  {
+    label: "Behavioral Intel",
+    href: "/admin/psychometrics",
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
       </svg>
     ),
   },
@@ -278,6 +301,17 @@ export default function DashboardLayout({
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [expandedNavs, setExpandedNavs] = useState<Record<string, boolean>>({
+    "My Readiness": true,
+  });
+  const [mounted, setMounted] = useState(false);
+  
+  const toggleNav = (label: string) => {
+    if (sidebarOpen || mobileMenuOpen) {
+      setExpandedNavs((prev) => ({ ...prev, [label]: !prev[label] }));
+    }
+  };
   
   // Create a singleton instance per render context
   const [supabase] = useState(() => createClient());
@@ -286,7 +320,13 @@ export default function DashboardLayout({
   const isAlumni = pathname.startsWith("/alumni");
   const navItems = isAdmin ? adminNav : isAlumni ? alumniNav : studentNav;
 
+  // Close mobile menu on route change
   useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    setMounted(true);
     async function loadUser() {
       const {
         data: { user },
@@ -341,6 +381,181 @@ export default function DashboardLayout({
     router.push("/login");
   };
 
+  if (!mounted) {
+    return (
+      <div suppressHydrationWarning className="min-h-screen bg-[#070a13] flex items-center justify-center">
+        <div suppressHydrationWarning className="animate-pulse text-cyan-500 font-semibold">Loading OS...</div>
+      </div>
+    );
+  }
+
+  const renderNavContent = (isMobile: boolean) => (
+    <>
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-white/[0.06]">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-500 flex items-center justify-center flex-shrink-0">
+          <span className="text-white font-black text-sm">IP</span>
+        </div>
+        <div className="animate-slide-in-right">
+          <h1 className="text-sm font-bold text-white leading-tight">
+            IMED Placement
+          </h1>
+          <p className="text-[10px] text-slate-500 font-medium">
+            {isAdmin ? "Admin Intelligence" : isAlumni ? "Alumni Portal" : "Student Workspace"}
+          </p>
+        </div>
+        {isMobile && (
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="ml-auto text-slate-400 hover:text-white p-1"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+        {(() => {
+          let currentSection = null;
+          return navItems.map((item: any, index) => {
+            
+            if (item.subItems) {
+              const isExpanded = expandedNavs[item.label];
+              const isActive = item.subItems.some((sub: any) => pathname === sub.href || pathname.startsWith(sub.href));
+
+              return (
+                <div key={item.label} className="space-y-1">
+                  <button
+                    onClick={() => toggleNav(item.label)}
+                    className={cn(
+                      "w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
+                      isActive && !isExpanded
+                        ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                        : "text-slate-400 hover:text-white hover:bg-white/[0.04]"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={cn(
+                          "flex-shrink-0 transition-colors",
+                          isActive ? "text-cyan-400" : "text-slate-500 group-hover:text-slate-300"
+                        )}
+                      >
+                        {item.icon}
+                      </span>
+                      <span>{item.label}</span>
+                    </div>
+                    <svg
+                      className={cn("w-4 h-4 transition-transform", isExpanded && "rotate-180")}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {isExpanded && (
+                    <div className="pl-11 pr-2 space-y-1 animate-in slide-in-from-top-2">
+                      {item.subItems.map((sub: any) => {
+                        const isSubActive = pathname === sub.href || pathname.startsWith(sub.href);
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            className={cn(
+                              "block px-3 py-2 rounded-lg text-xs font-medium transition-colors",
+                              isSubActive
+                                ? "bg-cyan-500/10 text-cyan-400"
+                                : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.02]"
+                            )}
+                          >
+                            {sub.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/student" &&
+                item.href !== "/admin" &&
+                item.href !== "/alumni" &&
+                pathname.startsWith(item.href));
+                
+            const showSectionHeader = item.section && item.section !== currentSection;
+            if (showSectionHeader) {
+              currentSection = item.section;
+            }
+
+            return (
+              <React.Fragment key={item.href}>
+                {showSectionHeader && (
+                  <div className="px-3 pt-5 pb-2">
+                    <p className="text-[10px] font-bold tracking-wider text-slate-500">
+                      {item.section}
+                    </p>
+                  </div>
+                )}
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
+                    isActive
+                      ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                      : "text-slate-400 hover:text-white hover:bg-white/[0.04]"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex-shrink-0 transition-colors",
+                      isActive ? "text-cyan-400" : "text-slate-500 group-hover:text-slate-300"
+                    )}
+                  >
+                    {item.icon}
+                  </span>
+                  <span>{item.label}</span>
+                </Link>
+              </React.Fragment>
+            );
+          });
+        })()}
+      </nav>
+
+      {/* User section */}
+      <div className="border-t border-white/[0.06] px-4 py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center flex-shrink-0 text-xs font-bold text-slate-300">
+            {profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || "?"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-white truncate">
+              {profile?.full_name || "User"}
+            </p>
+            <p className="text-[10px] text-slate-500 truncate">
+              {user?.email || ""}
+            </p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="text-slate-500 hover:text-rose-400 transition-colors p-1.5"
+            title="Sign Out"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div suppressHydrationWarning className="min-h-screen bg-[#070a13] flex">
       {/* Background ambience */}
@@ -349,10 +564,28 @@ export default function DashboardLayout({
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-600/[0.04] rounded-full blur-[120px]" />
       </div>
 
-      {/* Sidebar */}
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Sidebar Drawer */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full z-40 flex flex-col transition-all duration-300 border-r border-white/[0.06] bg-[#0a0e1a]/90 backdrop-blur-xl",
+          "fixed top-0 left-0 h-full z-50 flex flex-col border-r border-white/[0.06] bg-[#0a0e1a]/95 backdrop-blur-xl w-72 transition-transform duration-300 md:hidden",
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {renderNavContent(true)}
+      </aside>
+
+      {/* Desktop Sidebar */}
+      <aside
+        className={cn(
+          "fixed top-0 left-0 h-full z-40 flex-col transition-all duration-300 border-r border-white/[0.06] bg-[#0a0e1a]/90 backdrop-blur-xl hidden md:flex",
           sidebarOpen ? "w-64" : "w-20"
         )}
       >
@@ -375,39 +608,121 @@ export default function DashboardLayout({
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
-          {navItems.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/student" &&
-                item.href !== "/admin" &&
-                item.href !== "/alumni" &&
-                pathname.startsWith(item.href));
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
-                  isActive
-                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                    : "text-slate-400 hover:text-white hover:bg-white/[0.04]"
-                )}
-              >
-                <span
-                  className={cn(
-                    "flex-shrink-0 transition-colors",
-                    isActive ? "text-cyan-400" : "text-slate-500 group-hover:text-slate-300"
+          {(() => {
+            let currentSection = null;
+            return navItems.map((item: any, index) => {
+              
+              if (item.subItems) {
+                const isExpanded = expandedNavs[item.label];
+                const isActive = item.subItems.some((sub: any) => pathname === sub.href || pathname.startsWith(sub.href));
+
+                return (
+                  <div key={item.label} className="space-y-1">
+                    <button
+                      onClick={() => toggleNav(item.label)}
+                      className={cn(
+                        "w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
+                        isActive && !isExpanded
+                          ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                          : "text-slate-400 hover:text-white hover:bg-white/[0.04]",
+                        !sidebarOpen && "justify-center"
+                      )}
+                      title={!sidebarOpen ? item.label : undefined}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={cn(
+                            "flex-shrink-0 transition-colors",
+                            isActive ? "text-cyan-400" : "text-slate-500 group-hover:text-slate-300"
+                          )}
+                        >
+                          {item.icon}
+                        </span>
+                        {sidebarOpen && <span>{item.label}</span>}
+                      </div>
+                      {sidebarOpen && (
+                        <svg
+                          className={cn("w-4 h-4 transition-transform", isExpanded && "rotate-180")}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
+                    </button>
+                    {sidebarOpen && isExpanded && (
+                      <div className="pl-11 pr-2 space-y-1 animate-in slide-in-from-top-2">
+                        {item.subItems.map((sub: any) => {
+                          const isSubActive = pathname === sub.href || pathname.startsWith(sub.href);
+                          return (
+                            <Link
+                              key={sub.href}
+                              href={sub.href}
+                              className={cn(
+                                "block px-3 py-2 rounded-lg text-xs font-medium transition-colors",
+                                isSubActive
+                                  ? "bg-cyan-500/10 text-cyan-400"
+                                  : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.02]"
+                              )}
+                            >
+                              {sub.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              const isActive =
+                pathname === item.href ||
+                (item.href !== "/student" &&
+                  item.href !== "/admin" &&
+                  item.href !== "/alumni" &&
+                  pathname.startsWith(item.href));
+                  
+              const showSectionHeader = item.section && item.section !== currentSection;
+              if (showSectionHeader) {
+                currentSection = item.section;
+              }
+
+              return (
+                <React.Fragment key={item.href}>
+                  {showSectionHeader && sidebarOpen && (
+                    <div className="px-3 pt-5 pb-2">
+                      <p className="text-[10px] font-bold tracking-wider text-slate-500">
+                        {item.section}
+                      </p>
+                    </div>
                   )}
-                >
-                  {item.icon}
-                </span>
-                {sidebarOpen && <span>{item.label}</span>}
-              </Link>
-            );
-          })}
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
+                      isActive
+                        ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                        : "text-slate-400 hover:text-white hover:bg-white/[0.04]",
+                      !sidebarOpen && "justify-center"
+                    )}
+                    title={!sidebarOpen ? item.label : undefined}
+                  >
+                    <span
+                      className={cn(
+                        "flex-shrink-0 transition-colors",
+                        isActive ? "text-cyan-400" : "text-slate-500 group-hover:text-slate-300"
+                      )}
+                    >
+                      {item.icon}
+                    </span>
+                    {sidebarOpen && <span>{item.label}</span>}
+                  </Link>
+                </React.Fragment>
+              );
+            });
+          })()}
         </nav>
-
-
 
         {/* Sidebar toggle */}
         <div className="px-3 pb-2 pt-2">
@@ -461,15 +776,26 @@ export default function DashboardLayout({
       {/* Main content */}
       <main
         className={cn(
-          "flex-1 transition-all duration-300 min-h-screen",
-          sidebarOpen ? "ml-64" : "ml-20"
+          "flex-1 transition-all duration-300 min-h-screen w-full",
+          "md:ml-64",
+          sidebarOpen ? "md:ml-64" : "md:ml-20",
+          "ml-0" // No margin on mobile
         )}
       >
         {/* Top bar */}
         <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-[#070a13]/80 backdrop-blur-xl">
-          <div className="flex items-center justify-between px-8 py-4">
-            <div>
-              <h2 className="text-lg font-bold text-white">
+          <div className="flex items-center justify-between px-4 md:px-8 py-3 md:py-4">
+            {/* Hamburger button for mobile */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="md:hidden text-slate-400 hover:text-white p-1"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <h2 className="text-base md:text-lg font-bold text-white truncate">
                 {navItems.find(
                   (item) =>
                     pathname === item.href ||
@@ -480,11 +806,11 @@ export default function DashboardLayout({
                 )?.label || (isAdmin ? "Admin" : isAlumni ? "Alumni Portal" : "Student Workspace")}
               </h2>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
               <NotificationBell />
               <span
                 className={cn(
-                  "text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full",
+                  "text-[10px] font-bold uppercase tracking-wider px-2 md:px-2.5 py-1 rounded-full",
                   profile?.role === "admin"
                     ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                     : profile?.role === "alumni"
@@ -499,8 +825,9 @@ export default function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <div className="p-8">{children}</div>
+        <div className="p-4 md:p-8">{children}</div>
       </main>
     </div>
   );
 }
+

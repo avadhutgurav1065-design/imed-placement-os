@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       Only return valid JSON. Do not include markdown formatting like \`\`\`json.
     `;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
     const result = await model.generateContent(systemPrompt);
     let rawText = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
     

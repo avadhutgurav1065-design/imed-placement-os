@@ -4,6 +4,19 @@ export const metadata = {
   title: 'IMED Placement OS',
   description: 'AI-Powered Student Gap Analyzer & Placement Intelligence Hub — IMED Bharati Vidyapeeth',
   keywords: ['placement', 'ATS', 'resume analyzer', 'IMED', 'gap analysis', 'AI matching'],
+  manifest: '/manifest.json',
+  themeColor: '#06b6d4',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'IMED Place',
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 }
 
 export default function RootLayout({
@@ -14,8 +27,27 @@ export default function RootLayout({
   return (
     // suppressHydrationWarning stops browser extensions from crashing the dev server
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="min-h-screen bg-[#070a13] text-slate-100 antialiased" suppressHydrationWarning>
+      <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="IMED Place" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="manifest" href="/manifest.json" />
+      </head>
+      <body className="min-h-screen bg-[#070a13] text-slate-100 antialiased overflow-x-hidden" suppressHydrationWarning>
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js').catch(() => {});
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   )

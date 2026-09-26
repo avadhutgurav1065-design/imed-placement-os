@@ -28,24 +28,57 @@ export default function StudentHome() {
         const { data: analyses } = await supabase
           .from("gap_analyses")
           .select("*")
-          .order("created_at", { ascending: false });
+          .eq("student_id", user.id);
 
-        const all = analyses || [];
-        const totalScans = all.length;
+        const { data: stdTests } = await supabase
+          .from("student_assessments")
+          .select("*")
+          .eq("student_id", user.id);
+
+        const { data: psychTests } = await supabase
+          .from("psychometric_assessments")
+          .select("*")
+          .eq("user_id", user.id);
+
+        const allActivity = [
+          ...(analyses || []).map((a: any) => ({
+             ...a,
+             type: 'gap_analysis',
+             score: a.match_score || 0,
+             title: `Resume Match - ${a.job_role || 'General'}`,
+             date: a.created_at
+          })),
+          ...(stdTests || []).map((t: any) => ({
+             ...t,
+             type: 'assessment',
+             score: t.assessment_type === 'technical' ? t.score : Math.round((t.score / t.total_questions) * 100) || 0,
+             title: `${t.assessment_type === 'technical' ? 'Technical' : 'Aptitude'} Test - ${t.job_role}`,
+             date: t.created_at
+          })),
+          ...(psychTests || []).map((pt: any) => ({
+             ...pt,
+             type: 'psychometric',
+             score: Math.round((pt.analytical_ability + pt.execution_delivery + pt.interpersonal_skills + pt.team_collaboration + pt.leadership_potential + pt.stress_tolerance + pt.adaptability + pt.detail_orientation) / 8) || 0,
+             title: `Psychometric Test - ${pt.target_role}`,
+             date: pt.created_at
+          }))
+        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        const totalScans = allActivity.length;
         const avgScore =
           totalScans > 0
-            ? Math.round(all.reduce((s: any, a: any) => s + (a.match_score || 0), 0) / totalScans)
+            ? Math.round(allActivity.reduce((s: any, a: any) => s + (a.score || 0), 0) / totalScans)
             : 0;
         const bestScore =
           totalScans > 0
-            ? Math.max(...all.map((a: any) => a.match_score || 0))
+            ? Math.max(...allActivity.map((a: any) => a.score || 0))
             : 0;
 
         setStats({
           totalScans,
           avgScore,
           bestScore,
-          recentScans: all.slice(0, 5),
+          recentScans: allActivity.slice(0, 5),
         });
       }
       setLoading(false);
@@ -75,7 +108,7 @@ export default function StudentHome() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          label="Total Scans"
+          label="Total Activity"
           value={stats.totalScans}
           color="cyan"
           icon={
@@ -85,7 +118,7 @@ export default function StudentHome() {
           }
         />
         <StatCard
-          label="Average Match"
+          label="Overall Average"
           value={stats.avgScore}
           suffix="%"
           color={stats.avgScore >= 75 ? "emerald" : "amber"}
@@ -109,43 +142,107 @@ export default function StudentHome() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <Link href="/student/analyze">
-          <GlassCard className="group cursor-pointer border-cyan-500/10 hover:border-cyan-500/30">
-            <div className="flex items-center gap-4">
+          <GlassCard className="group h-full cursor-pointer border-cyan-500/10 hover:border-cyan-500/30 flex flex-col justify-between">
+            <div className="flex flex-col gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <svg className="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
               <div>
-                <h3 className="text-white font-semibold">Run Gap Analysis</h3>
-                <p className="text-slate-400 text-xs mt-0.5">
+                <h3 className="text-white font-semibold">Skill Matching</h3>
+                <p className="text-slate-400 text-xs mt-1">
                   Upload resume & match against corporate JDs
                 </p>
+
               </div>
-              <svg className="w-5 h-5 text-slate-600 group-hover:text-cyan-400 ml-auto transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-slate-600 group-hover:text-cyan-400 mt-4 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
           </GlassCard>
         </Link>
 
-        <Link href="/student/interview">
-          <GlassCard className="group cursor-pointer border-indigo-500/10 hover:border-indigo-500/30">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+        <Link href="/student/technical-skills">
+          <GlassCard className="group h-full cursor-pointer border-indigo-500/10 hover:border-indigo-500/30 flex flex-col justify-between">
+            <div className="flex flex-col gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <svg className="w-6 h-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                 </svg>
               </div>
               <div>
-                <h3 className="text-white font-semibold">AI Mock Interview</h3>
-                <p className="text-slate-400 text-xs mt-0.5">
-                  Practice with voice-based AI technical screening
+                <h3 className="text-white font-semibold">Technical Skills</h3>
+                <p className="text-slate-400 text-xs mt-1">
+                  Assess domain knowledge & tech stack
                 </p>
               </div>
-              <svg className="w-5 h-5 text-slate-600 group-hover:text-indigo-400 ml-auto transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-slate-600 group-hover:text-indigo-400 mt-4 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </GlassCard>
+        </Link>
+
+        <Link href="/student/aptitude">
+          <GlassCard className="group h-full cursor-pointer border-rose-500/10 hover:border-rose-500/30 flex flex-col justify-between">
+            <div className="flex flex-col gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/20 to-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">Aptitude Test</h3>
+                <p className="text-slate-400 text-xs mt-1">
+                  Logical, verbal & quantitative reasoning
+                </p>
+              </div>
+              <svg className="w-5 h-5 text-slate-600 group-hover:text-rose-400 mt-4 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </GlassCard>
+        </Link>
+
+        <Link href="/student/interview/live">
+          <GlassCard className="group h-full cursor-pointer border-amber-500/10 hover:border-amber-500/30 flex flex-col justify-between">
+            <div className="flex flex-col gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">Live Interview</h3>
+                <p className="text-slate-400 text-xs mt-1">
+                  Multimodal AI with Video & Voice Analysis
+                </p>
+              </div>
+              <svg className="w-5 h-5 text-slate-600 group-hover:text-amber-400 mt-4 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </GlassCard>
+        </Link>
+
+        <Link href="/student/psychometric">
+          <GlassCard className="group h-full cursor-pointer border-emerald-500/10 hover:border-emerald-500/30 flex flex-col justify-between">
+            <div className="flex flex-col gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">Psychometric Test</h3>
+                <p className="text-slate-400 text-xs mt-1">
+                  AI Paradox Theory behavioral assessment
+                </p>
+              </div>
+              <svg className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 mt-4 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
@@ -156,9 +253,9 @@ export default function StudentHome() {
       {/* Recent Scans */}
       <GlassCard>
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-white">Recent Scans</h3>
+          <h3 className="text-lg font-bold text-white">Recent Activity</h3>
           <Link
-            href="/student/history"
+            href="/student/assessments"
             className="text-xs text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
           >
             View All →
@@ -166,11 +263,11 @@ export default function StudentHome() {
         </div>
         {loading ? (
           <div className="text-center py-8 text-slate-400 text-sm animate-pulse">
-            Loading scan history...
+            Loading activity history...
           </div>
         ) : stats.recentScans.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-slate-500 text-sm">No scans yet.</p>
+            <p className="text-slate-500 text-sm">No activity yet.</p>
             <Link
               href="/student/analyze"
               className="text-cyan-400 text-sm font-medium hover:text-cyan-300 mt-2 inline-block"
@@ -188,26 +285,26 @@ export default function StudentHome() {
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-2 h-2 rounded-full ${
-                      (scan.match_score || 0) >= 75 ? "bg-emerald-400" : "bg-rose-400"
+                      (scan.score || 0) >= 75 ? "bg-emerald-400" : "bg-rose-400"
                     }`}
                   />
                   <div>
                     <p className="text-sm text-white font-medium">
-                      {scan.job_role || scan.student_name || "Gap Analysis"}
+                      {scan.title}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {scan.created_at
-                        ? new Date(scan.created_at).toLocaleDateString()
+                      {scan.date
+                        ? new Date(scan.date).toLocaleDateString()
                         : ""}
                     </p>
                   </div>
                 </div>
                 <span
                   className={`text-lg font-extrabold ${
-                    (scan.match_score || 0) >= 75 ? "text-emerald-400" : "text-rose-400"
+                    (scan.score || 0) >= 75 ? "text-emerald-400" : "text-rose-400"
                   }`}
                 >
-                  {scan.match_score || 0}%
+                  {scan.score || 0}%
                 </span>
               </div>
             ))}

@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     `;
 
     // 5. Execute AI Evaluation with Auto-Retry for 503 Errors
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
     
     let result;
     let retries = 3;

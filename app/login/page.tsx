@@ -13,9 +13,11 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [dbStatus, setDbStatus] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    setMounted(true);
     fetch("/api/health").then(res => res.json()).then(data => {
       if (data.status === "uninitialized") {
         setDbStatus("uninitialized");
@@ -60,8 +62,16 @@ export default function LoginPage() {
     }
   };
 
+  if (!mounted) {
+    return (
+      <div suppressHydrationWarning className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8 text-slate-200">
+        <div suppressHydrationWarning className="animate-pulse text-cyan-500 font-semibold">Loading...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8 text-slate-200">
+    <div suppressHydrationWarning className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8 text-slate-200">
       <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl relative">
         {dbStatus === "uninitialized" && (
           <div className="absolute -top-16 left-0 right-0 bg-rose-500/10 border border-rose-500/50 text-rose-400 p-3 rounded-xl text-xs text-center font-bold">
