@@ -420,7 +420,7 @@ export default function DashboardLayout({
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
         {(() => {
-          let currentSection = null;
+          let currentSection: string | null = null;
           return navItems.map((item: any, index) => {
             
             if (item.subItems) {
