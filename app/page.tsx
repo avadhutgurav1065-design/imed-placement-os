@@ -52,12 +52,17 @@ export default function LandingPage() {
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
             AI-Powered Placement Engine
           </div>
-          <h1 className="text-5xl lg:text-7xl font-black text-white leading-tight mb-8 tracking-tighter">
+          <h1 className="text-5xl lg:text-7xl font-black text-white leading-tight mb-6 tracking-tighter">
             Bridging the gap between <br className="hidden md:block"/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 animate-shimmer">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600">
               Campus &amp; Corporate.
             </span>
           </h1>
+          <div className="mb-8">
+            <p className="text-[10px] md:text-xs font-bold text-slate-500 tracking-widest uppercase">
+              Designed and developed by <span className="text-cyan-400">Avadhut Gurav</span>
+            </p>
+          </div>
           <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10 font-medium">
             IMED Placement OS leverages Gemini AI to evaluate student readiness, conduct real-time technical interviews, and match cohorts to ingested corporate requirements with extreme precision.
           </p>
