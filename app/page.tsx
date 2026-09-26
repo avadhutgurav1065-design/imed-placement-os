@@ -1,5 +1,6 @@
 // SERVER COMPONENT - No "use client" = no hydration = immune to browser extensions
 import { cn } from "@/lib/utils";
+import { InstallPWA } from "@/components/shared/InstallPWA";
 
 // Inline GlassCard as a server-compatible component
 function Card({ children, className, ...props }: { children: React.ReactNode; className?: string; [k: string]: any }) {
@@ -66,12 +67,18 @@ export default function LandingPage() {
           <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10 font-medium">
             IMED Placement OS leverages Gemini AI to evaluate student readiness, conduct real-time technical interviews, and match cohorts to ingested corporate requirements with extreme precision.
           </p>
-          <a 
-            href="/login"
-            className="inline-block px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-full font-bold text-lg hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] transform hover:-translate-y-1"
-          >
-            Enter Platform Space
-          </a>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a 
+              href="/login"
+              className="inline-block px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-full font-bold text-lg hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] transform hover:-translate-y-1 w-full sm:w-auto text-center"
+            >
+              Enter Platform Space
+            </a>
+            <InstallPWA 
+              className="w-full sm:w-auto" 
+              buttonClassName="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-full text-lg shadow-[0_0_30px_rgba(79,70,229,0.3)] hover:shadow-[0_0_50px_rgba(79,70,229,0.5)] transform hover:-translate-y-1" 
+            />
+          </div>
         </div>
 
         {/* Features: Bento Grid */}
