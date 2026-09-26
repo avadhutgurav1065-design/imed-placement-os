@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/shared/NotificationBell";
+import { InstallPWA } from "@/components/shared/InstallPWA";
 
 const studentNav = [
   {
@@ -528,6 +529,9 @@ export default function DashboardLayout({
         })()}
       </nav>
 
+      {/* App Install Button (only visible if installable) */}
+      <InstallPWA />
+
       {/* User section */}
       <div className="border-t border-white/[0.06] px-4 py-4">
         <div className="flex items-center gap-3">
@@ -552,6 +556,13 @@ export default function DashboardLayout({
             </svg>
           </button>
         </div>
+      </div>
+
+      {/* Developer Credit */}
+      <div className="px-4 pb-4 pt-2">
+        <p className="text-[10px] text-slate-500/60 font-medium text-center tracking-wide">
+          Designed and developed by Avadhut Gurav
+        </p>
       </div>
     </>
   );
