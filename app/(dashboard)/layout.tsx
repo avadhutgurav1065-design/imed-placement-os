@@ -735,6 +735,8 @@ export default function DashboardLayout({
           })()}
         </nav>
 
+        <InstallPWA />
+
         {/* Sidebar toggle */}
         <div className="px-3 pb-2 pt-2">
           <button
