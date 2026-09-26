@@ -809,11 +809,11 @@ export default function DashboardLayout({
               <h2 className="text-base md:text-lg font-bold text-white truncate">
                 {navItems.find(
                   (item) =>
-                    pathname === item.href ||
+                    item.href && (pathname === item.href ||
                     (item.href !== "/student" &&
                       item.href !== "/admin" &&
                       item.href !== "/alumni" &&
-                      pathname.startsWith(item.href))
+                      pathname.startsWith(item.href)))
                 )?.label || (isAdmin ? "Admin" : isAlumni ? "Alumni Portal" : "Student Workspace")}
               </h2>
             </div>
