@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
-// Initialize Supabase Client for the browser using singleton
-const supabase = createClient();
+// We intentionally DO NOT initialize supabase at module level
+// because strict browser privacy settings (Brave, ad-blockers)
+// can throw SecurityError on document.cookie access during module evaluation,
+// crashing the entire chunk.
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -29,13 +31,24 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
-      setError(error.message);
+    let supabase;
+    try {
+      supabase = createClient();
+    } catch (err) {
+      console.error("Supabase init error:", err);
+      setError("Your browser is blocking cookies or storage access. Please disable strict tracking protection or allow cookies for this site.");
       setLoading(false);
       return;
     }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
 
     if (data?.user) {
       try {
