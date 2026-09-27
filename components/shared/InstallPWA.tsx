@@ -11,30 +11,22 @@ export function InstallPWA({
   buttonClassName?: string 
 }) {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
-  const [showIOSHint, setShowIOSHint] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
     // Check if already installed
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
-    if (isStandalone) {
-      return; // Already installed, don't show anything
-    }
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    setIsStandalone(standalone);
 
     // Detect iOS
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
-    setIsIOS(isIosDevice);
-
-    if (isIosDevice) {
-      setIsInstallable(true);
-    }
+    setIsIOS(/iphone|ipad|ipod/.test(userAgent));
 
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setIsInstallable(true);
     };
 
     if (typeof window !== 'undefined' && (window as any).deferredPWAEvent) {
@@ -42,7 +34,7 @@ export function InstallPWA({
     }
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    window.addEventListener("appinstalled", () => setIsInstallable(false));
+    window.addEventListener("appinstalled", () => setIsStandalone(true));
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -50,19 +42,18 @@ export function InstallPWA({
   }, []);
 
   const handleInstallClick = async () => {
-    if (isIOS) {
-      setShowIOSHint(true);
-      return;
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") setIsStandalone(true);
+      setDeferredPrompt(null);
+    } else {
+      // Fallback: Show manual hint if native prompt isn't available
+      setShowHint(true);
     }
-
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") setIsInstallable(false);
-    setDeferredPrompt(null);
   };
 
-  if (!isInstallable) return null;
+  if (isStandalone) return null;
 
   return (
     <div className={className}>
@@ -74,9 +65,13 @@ export function InstallPWA({
         <span>Install App</span>
       </button>
       
-      {showIOSHint && (
+      {showHint && (
         <div className="mt-3 p-3 bg-white/[0.05] border border-white/[0.1] rounded-lg text-xs text-slate-300 animate-in slide-in-from-top-2">
-          To install on iOS: Tap the <strong className="text-white">Share</strong> icon at the bottom of your browser and select <strong className="text-white">Add to Home Screen</strong>.
+          {isIOS ? (
+            <>To install on iOS: Tap the <strong className="text-white">Share</strong> icon at the bottom of your browser and select <strong className="text-white">Add to Home Screen</strong>.</>
+          ) : (
+            <>To install: Open your browser menu (⋮) and select <strong className="text-white">Install app</strong> or <strong className="text-white">Add to Home screen</strong>.</>
+          )}
         </div>
       )}
     </div>
