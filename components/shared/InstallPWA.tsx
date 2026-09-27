@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 
+import { cn } from "@/lib/utils";
+
 export function InstallPWA({ 
   className = "px-3 py-4 flex flex-col items-center", 
   buttonClassName = "w-full" 
@@ -59,7 +61,10 @@ export function InstallPWA({
     <div className={className}>
       <button
         onClick={handleInstallClick}
-        className={`flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-indigo-900/20 animate-in fade-in zoom-in duration-500 ${buttonClassName}`}
+        className={cn(
+          "flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-indigo-900/20 animate-in fade-in zoom-in duration-500",
+          buttonClassName
+        )}
       >
         <Download className="w-4 h-4" />
         <span>Install App</span>

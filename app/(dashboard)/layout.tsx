@@ -735,7 +735,7 @@ export default function DashboardLayout({
           })()}
         </nav>
 
-        <InstallPWA />
+        {sidebarOpen && <InstallPWA />}
 
         {/* Sidebar toggle */}
         <div className="px-3 pb-2 pt-2">
@@ -789,8 +789,7 @@ export default function DashboardLayout({
       {/* Main content */}
       <main
         className={cn(
-          "flex-1 transition-all duration-300 min-h-screen w-full",
-          "md:ml-64",
+          "flex-1 transition-all duration-300 min-h-screen min-w-0",
           sidebarOpen ? "md:ml-64" : "md:ml-20",
           "ml-0" // No margin on mobile
         )}

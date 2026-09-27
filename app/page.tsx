@@ -53,7 +53,7 @@ export default function LandingPage() {
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
             AI-Powered Placement Engine
           </div>
-          <h1 className="text-5xl lg:text-7xl font-black text-white leading-tight mb-6 tracking-tighter">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white leading-tight mb-6 tracking-tighter">
             Bridging the gap between <br className="hidden md:block"/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600">
               Campus &amp; Corporate.
@@ -64,13 +64,13 @@ export default function LandingPage() {
               Designed and developed by <span className="text-cyan-400">Avadhut Gurav</span>
             </p>
           </div>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10 font-medium">
+          <p className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10 font-medium">
             IMED Placement OS leverages Gemini AI to evaluate student readiness, conduct real-time technical interviews, and match cohorts to ingested corporate requirements with extreme precision.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
             <a 
               href="/login"
-              className="inline-block px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-full font-bold text-lg hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] transform hover:-translate-y-1 w-full sm:w-auto text-center"
+              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-full font-bold text-lg hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] transform hover:-translate-y-1 w-full sm:w-auto"
             >
               Enter Platform Space
             </a>

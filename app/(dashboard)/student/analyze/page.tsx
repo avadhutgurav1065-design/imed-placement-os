@@ -114,7 +114,7 @@ export default function GapAnalyzerPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Target Selection */}
-        <GlassCard>
+        <GlassCard className="relative z-20">
           <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
             <span className="text-cyan-400 text-xs font-bold bg-cyan-500/10 px-2 py-0.5 rounded">01</span>
             Define Target Role
