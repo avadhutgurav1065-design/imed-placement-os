@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { targetRole, history, studentAnswer, mode, images } = body;
+    const { targetRole, history, studentAnswer, mode, images, lowBandwidthMode } = body;
 
     // Phase 2: Resume Integration - Fetch student skills
     const { data: profile } = await supabase
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     const totalExchanges = Math.floor((history?.length || 0) / 2) + 1;
 
     let systemInstruction = `You are a highly experienced, STRICT, and observant Corporate Recruiter and Technical Interviewer for the role of ${targetRole}.
-You are conducting a LIVE audio-visual interview.
+You are conducting a LIVE ${lowBandwidthMode ? 'audio/text' : 'audio-visual'} interview.
 
 **CANDIDATE CONTEXT:**
 The candidate claims to have the following skills on their resume/profile: ${studentSkills}. 
@@ -47,22 +47,33 @@ You must explicitly test their knowledge on these specific skills if they are re
 **HOLISTIC EVALUATION (3 DIMENSIONS):**
 1. Technical Brilliance & Skill Validation: Are they actually proficient in what they claim?
 2. Soft Skills & Vocal Delivery: Are they speaking clearly? Are they confident?
-3. Visual Proctoring: You receive webcam snapshots. Are they reading off a screen? Looking away?
+3. ${lowBandwidthMode ? 'Contextual' : 'Visual'} Proctoring: ${lowBandwidthMode ? 'The candidate is on a low-bandwidth connection. You will not receive images. Do not complain about missing video. Focus solely on their answers and text behavior.' : 'You receive webcam snapshots. Are they reading off a screen? Looking away? Is there a second person in the frame?'}
 
-CRITICAL PROCTORING RULE: If you detect any signs of reading, looking away constantly, or cheating in the images, you MUST GIVE A STRICT VERBAL WARNING immediately before asking the next question.
+${!lowBandwidthMode ? `CRITICAL PROCTORING RULE: YOU MUST ANALYZE THE IMAGE. If you detect ANY signs of:
+- A second person in the frame.
+- The candidate reading off a screen or holding a phone.
+- The candidate looking away constantly.
+YOU MUST GIVE A STRICT VERBAL WARNING IMMEDIATELY before asking the next question.` : ''}
 
 Be conversational but strict. Reply strictly with:
-- Brief adaptive feedback on their previous answer (evaluating their correctness AND their soft skills/visual confidence).
+- Brief adaptive feedback on their previous answer.
+${!lowBandwidthMode ? '- IF cheating is detected, a strict verbal warning.' : ''}
 - Your next interview question (adapted in difficulty).
 
 Keep your responses concise so they sound natural when spoken out loud. Ask only 1 question at a time.`;
 
     if (totalExchanges >= 5) {
       systemInstruction += `\n\nCRITICAL INSTRUCTION: This is the final exchange. You must conclude the interview now. DO NOT ask another question. 
-You must provide:
-1. A comprehensive summary of their performance across all questions (Technical, Soft Skills, and Visual Confidence).
-2. A strict 5-point Action Plan for further upskilling.
-3. A final score out of 100 wrapped exactly like this: [SCORE: 85]
+You must provide your final evaluation strictly using these tags at the very end of your response:
+[BEHAVIOR: ${lowBandwidthMode ? 'Provide a strict, 1-2 sentence analysis of their answers and communication style, noting that visual proctoring was disabled due to low bandwidth.' : 'Provide a strict, 1-2 sentence analysis of their visual behavior (eye contact, confidence, reading off screen, second person in frame) based on all images provided.'}]
+[RESUME_FEEDBACK: Did they successfully answer questions related to the skills on their resume? Mention specific missing skills if any.]
+[TIMELINE: Provide a brief timestamped timeline of key moments, e.g., 'Q1 - Candidate struggled with basics | Q3 - Candidate showed strong problem solving']
+[ACTION_PLAN: Provide a strict 5-point Action Plan for further upskilling.]
+[SCORE_COMMUNICATION: 85] (Out of 100)
+[SCORE_TECHNICAL: 90] (Out of 100)
+[SCORE_PROBLEM_SOLVING: 80] (Out of 100)
+[SCORE_CULTURE_FIT: 85] (Out of 100)
+[SCORE: 85] (Overall out of 100)
 End the interview politely.`;
     } else {
       systemInstruction += `\n\nCRITICAL INSTRUCTION: We are at question ${totalExchanges} out of 5. You must ask another interview question based on the role.`;
@@ -120,6 +131,15 @@ End the interview politely.`;
       isComplete = true;
       const score = parseInt(scoreMatch[1]);
       
+      const actionPlanMatch = aiResponse.match(/\[ACTION_PLAN:\s*([\s\S]*?)\]/i);
+      const behaviorMatch = aiResponse.match(/\[BEHAVIOR:\s*([\s\S]*?)\]/i);
+      const resumeFeedbackMatch = aiResponse.match(/\[RESUME_FEEDBACK:\s*([\s\S]*?)\]/i);
+      const timelineMatch = aiResponse.match(/\[TIMELINE:\s*([\s\S]*?)\]/i);
+      const scoreCommMatch = aiResponse.match(/\[SCORE_COMMUNICATION:\s*(\d+)\]/i);
+      const scoreTechMatch = aiResponse.match(/\[SCORE_TECHNICAL:\s*(\d+)\]/i);
+      const scoreProbMatch = aiResponse.match(/\[SCORE_PROBLEM_SOLVING:\s*(\d+)\]/i);
+      const scoreCultureMatch = aiResponse.match(/\[SCORE_CULTURE_FIT:\s*(\d+)\]/i);
+      
       // Save to interview_logs so it shows up in history
       await supabase.from("interview_logs").insert({
         student_id: user.id,
@@ -127,8 +147,16 @@ End the interview politely.`;
         overall_score: score,
         ai_feedback: {
           feedback: aiResponse,
-          action_plan: aiResponse.split("Action Plan").pop() || "Keep practicing.",
-          student_behavior: "Analyzed via Live Webcam feed during the interview.",
+          action_plan: actionPlanMatch ? actionPlanMatch[1].trim() : (aiResponse.split("Action Plan").pop() || "Keep practicing."),
+          student_behavior: behaviorMatch ? behaviorMatch[1].trim() : "Analyzed via Live Webcam feed during the interview.",
+          resume_feedback: resumeFeedbackMatch ? resumeFeedbackMatch[1].trim() : "No specific resume discrepancies noted.",
+          timeline: timelineMatch ? timelineMatch[1].trim() : "Timeline not provided.",
+          scores: {
+            communication: scoreCommMatch ? parseInt(scoreCommMatch[1]) : score,
+            technical: scoreTechMatch ? parseInt(scoreTechMatch[1]) : score,
+            problem_solving: scoreProbMatch ? parseInt(scoreProbMatch[1]) : score,
+            culture_fit: scoreCultureMatch ? parseInt(scoreCultureMatch[1]) : score,
+          }
         },
         questions: history?.filter((m: any) => m.role === "ai") || [],
         answers: history?.filter((m: any) => m.role === "user") || [],

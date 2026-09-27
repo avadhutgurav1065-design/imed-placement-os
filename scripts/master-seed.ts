@@ -12,23 +12,41 @@ async function masterSeed() {
 
   // ── 1. ADMIN ──────────────────────────────────────────
   console.log("Creating admin@imed.edu...");
+  let adminId = '';
   const { data: adminData, error: adminErr } = await supabase.auth.admin.createUser({
     email: 'admin@imed.edu', password: 'password123', email_confirm: true, user_metadata: { role: 'admin' }
   });
   if (adminErr && !adminErr.message.includes('already been registered')) console.error("  ❌", adminErr.message);
+  
   if (adminData?.user) {
-    await supabase.from('admin_profiles').upsert({ id: adminData.user.id, email: 'admin@imed.edu', full_name: 'System Admin', role: 'admin' });
-    console.log("  ✅ admin@imed.edu created");
+    adminId = adminData.user.id;
+  } else {
+    const { data: { users } } = await supabase.auth.admin.listUsers();
+    adminId = users.find(u => u.email === 'admin@imed.edu')?.id || '';
+  }
+
+  if (adminId) {
+    await supabase.from('admin_profiles').upsert({ id: adminId, email: 'admin@imed.edu', full_name: 'System Admin', role: 'admin' });
+    console.log("  ✅ admin@imed.edu upserted");
   }
 
   console.log("Creating systemadmin@imed.edu...");
+  let sysId = '';
   const { data: sysData, error: sysErr } = await supabase.auth.admin.createUser({
     email: 'systemadmin@imed.edu', password: 'password123', email_confirm: true, user_metadata: { role: 'admin' }
   });
   if (sysErr && !sysErr.message.includes('already been registered')) console.error("  ❌", sysErr.message);
+  
   if (sysData?.user) {
-    await supabase.from('admin_profiles').upsert({ id: sysData.user.id, email: 'systemadmin@imed.edu', full_name: 'Master System Admin', role: 'admin' });
-    console.log("  ✅ systemadmin@imed.edu created");
+    sysId = sysData.user.id;
+  } else {
+    const { data: { users } } = await supabase.auth.admin.listUsers();
+    sysId = users.find(u => u.email === 'systemadmin@imed.edu')?.id || '';
+  }
+
+  if (sysId) {
+    await supabase.from('admin_profiles').upsert({ id: sysId, email: 'systemadmin@imed.edu', full_name: 'Master System Admin', role: 'admin' });
+    console.log("  ✅ systemadmin@imed.edu upserted");
   }
 
   // ── 2. STUDENTS ───────────────────────────────────────
@@ -41,21 +59,30 @@ async function masterSeed() {
   ];
 
   const studentIds: Record<string, string> = {};
+  const { data: { users: allUsers } } = await supabase.auth.admin.listUsers();
 
   for (const s of students) {
     console.log(`Creating ${s.email}...`);
+    let studentId = '';
     const { data, error } = await supabase.auth.admin.createUser({
       email: s.email, password: 'password123', email_confirm: true, user_metadata: { role: 'student' }
     });
     if (error && !error.message.includes('already been registered')) console.error("  ❌", error.message);
+    
     if (data?.user) {
-      studentIds[s.email] = data.user.id;
+      studentId = data.user.id;
+    } else {
+      studentId = allUsers.find(u => u.email === s.email)?.id || '';
+    }
+
+    if (studentId) {
+      studentIds[s.email] = studentId;
       await supabase.from('student_profiles').upsert({
-        id: data.user.id, email: s.email, full_name: s.name, role: 'student',
+        id: studentId, email: s.email, full_name: s.name, role: 'student',
         branch: s.branch, batch_year: s.batch, readiness_score: s.score,
         skills: ['JavaScript', 'React', 'Node.js', 'SQL', 'Python'].slice(0, 3 + Math.floor(Math.random() * 3))
       });
-      console.log(`  ✅ ${s.email} created`);
+      console.log(`  ✅ ${s.email} upserted`);
     }
   }
 
@@ -70,18 +97,26 @@ async function masterSeed() {
 
   for (const a of alumni) {
     console.log(`Creating ${a.email}...`);
+    let alumniId = '';
     const { data, error } = await supabase.auth.admin.createUser({
       email: a.email, password: 'password123', email_confirm: true, user_metadata: { role: 'alumni' }
     });
     if (error && !error.message.includes('already been registered')) console.error("  ❌", error.message);
+    
     if (data?.user) {
-      alumniIds[a.email] = data.user.id;
+      alumniId = data.user.id;
+    } else {
+      alumniId = allUsers.find(u => u.email === a.email)?.id || '';
+    }
+
+    if (alumniId) {
+      alumniIds[a.email] = alumniId;
       await supabase.from('alumni_profiles').upsert({
-        id: data.user.id, email: a.email, full_name: a.name, role: 'alumni',
+        id: alumniId, email: a.email, full_name: a.name, role: 'alumni',
         graduation_year: a.grad, branch: a.branch, current_company: a.company,
         role_title: a.title, is_mentor: true, engagement_score: 300 + Math.floor(Math.random() * 200)
       });
-      console.log(`  ✅ ${a.email} created`);
+      console.log(`  ✅ ${a.email} upserted`);
     }
   }
 

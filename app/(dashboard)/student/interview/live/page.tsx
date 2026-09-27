@@ -19,11 +19,13 @@ export default function LiveInterviewPage() {
   const [isListening, setIsListening] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [exchangeCount, setExchangeCount] = useState(0);
+  const [lowBandwidthMode, setLowBandwidthMode] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const framesBufferRef = useRef<string[]>([]);
 
   const ROLES = ["Software Engineer", "Data Analyst", "Product Manager", "Cloud Engineer"];
 
@@ -50,17 +52,37 @@ export default function LiveInterviewPage() {
         recognitionRef.current = r;
       }
     }
+    // Check for slow network (auto-enable low bandwidth mode)
+    if (typeof navigator !== "undefined" && (navigator as any).connection) {
+      const conn = (navigator as any).connection;
+      if (conn.effectiveType === "2g" || conn.effectiveType === "slow-2g") {
+        setLowBandwidthMode(true);
+      }
+    }
   }, []);
 
-  // Setup Webcam Feed
+  // Setup Webcam Feed & Rolling Frame Capture
   useEffect(() => {
-    if (isStarted && videoRef.current) {
+    let interval: NodeJS.Timeout;
+
+    if (isStarted && !lowBandwidthMode && videoRef.current) {
       navigator.mediaDevices
         .getUserMedia({ video: { facingMode: "user" }, audio: false })
         .then((stream) => {
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
           }
+
+          // Start capturing frames every 2 seconds for the rolling buffer
+          interval = setInterval(() => {
+            const frame = captureSingleFrame();
+            if (frame) {
+              framesBufferRef.current.push(frame);
+              if (framesBufferRef.current.length > 3) {
+                framesBufferRef.current.shift(); // Keep only the last 3 frames
+              }
+            }
+          }, 2000);
         })
         .catch((err) => {
           console.error("Error accessing webcam:", err);
@@ -68,16 +90,16 @@ export default function LiveInterviewPage() {
         });
     }
     return () => {
-      // Cleanup webcam stream when component unmounts
+      clearInterval(interval);
       if (videoRef.current?.srcObject) {
         const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
         tracks.forEach((track) => track.stop());
       }
     };
-  }, [isStarted]);
+  }, [isStarted, lowBandwidthMode]);
 
-  const captureFrames = (): string[] => {
-    if (!videoRef.current || !canvasRef.current) return [];
+  const captureSingleFrame = (): string | null => {
+    if (!videoRef.current || !canvasRef.current) return null;
     
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -86,12 +108,10 @@ export default function LiveInterviewPage() {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return [];
+    if (!ctx) return null;
     
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    // Scale down image quality to save bandwidth
-    const frame = canvas.toDataURL("image/jpeg", 0.5); 
-    return [frame];
+    return canvas.toDataURL("image/jpeg", 0.5); 
   };
 
   const speakText = (text: string) => {
@@ -108,7 +128,16 @@ export default function LiveInterviewPage() {
 
   const callLiveAPI = async (history: Message[], mode: "start" | "respond", answer?: string) => {
     setIsLoading(true);
-    const images = mode === "respond" ? captureFrames() : [];
+    
+    // Send the last 3 rolling frames if responding and not in low bandwidth mode, then clear the buffer
+    let images: string[] = [];
+    if (mode === "respond" && !lowBandwidthMode) {
+      // Always capture exactly right now just in case the buffer is empty
+      const immediateFrame = captureSingleFrame();
+      images = [...framesBufferRef.current];
+      if (immediateFrame && images.length === 0) images.push(immediateFrame);
+      framesBufferRef.current = []; // reset for the next question
+    }
     
     try {
       const res = await fetch("/api/interview/live", {
@@ -120,6 +149,7 @@ export default function LiveInterviewPage() {
           studentAnswer: answer,
           mode,
           images,
+          lowBandwidthMode,
         }),
       });
       const data = await res.json();
@@ -232,12 +262,25 @@ export default function LiveInterviewPage() {
             ))}
           </div>
 
+          <div className="flex items-center gap-2 mb-4 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+            <input 
+              type="checkbox" 
+              id="lowBandwidth" 
+              checked={lowBandwidthMode}
+              onChange={(e) => setLowBandwidthMode(e.target.checked)}
+              className="rounded bg-black border-white/20 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0 focus:ring-offset-transparent cursor-pointer"
+            />
+            <label htmlFor="lowBandwidth" className="text-sm font-medium text-indigo-300 cursor-pointer">
+              Low-Bandwidth Mode (Audio/Text Only)
+            </label>
+          </div>
+
           <button
             onClick={startInterview}
             disabled={!targetRole}
             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
-            Start Camera & Microphone →
+            Start {lowBandwidthMode ? "Microphone" : "Camera & Microphone"} →
           </button>
         </GlassCard>
       </div>
@@ -251,13 +294,20 @@ export default function LiveInterviewPage() {
       <div className="w-full md:w-80 flex flex-row md:flex-col gap-3 md:gap-4 flex-shrink-0 h-32 md:h-auto">
         <GlassCard className="p-2 md:p-4 relative overflow-hidden flex-shrink-0 w-[45%] md:w-full flex flex-col">
           <div className="flex-1 md:flex-none md:aspect-[4/3] bg-black rounded-lg md:rounded-xl overflow-hidden relative border border-white/10">
-            <video 
-              ref={videoRef} 
-              autoPlay 
-              playsInline 
-              muted 
-              className="w-full h-full object-cover"
-            />
+            {lowBandwidthMode ? (
+              <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 bg-slate-900">
+                <Mic className="w-8 h-8 mb-2 opacity-50" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold">Audio Only</span>
+              </div>
+            ) : (
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline 
+                muted 
+                className="w-full h-full object-cover"
+              />
+            )}
             <div className="absolute top-1 right-1 md:top-2 md:right-2 bg-rose-500/80 text-white text-[9px] md:text-[10px] font-bold px-1.5 md:px-2 py-0.5 rounded-full flex items-center gap-1">
               <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
               REC

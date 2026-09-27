@@ -5,18 +5,19 @@ export const metadata = {
   description: 'AI-Powered Student Gap Analyzer & Placement Intelligence Hub — IMED Bharati Vidyapeeth',
   keywords: ['placement', 'ATS', 'resume analyzer', 'IMED', 'gap analysis', 'AI matching'],
   manifest: '/manifest.json',
-  themeColor: '#06b6d4',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'IMED Place',
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
+}
+
+export const viewport = {
+  
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({
@@ -57,3 +58,6 @@ export default function RootLayout({
     </html>
   )
 }
+export const viewport = {
+  themeColor: '#06b6d4',
+};

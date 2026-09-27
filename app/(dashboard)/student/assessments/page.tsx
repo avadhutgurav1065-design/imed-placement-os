@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { GlassCard } from "@/components/shared/GlassCard";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts";
 
 const supabase = createClient();
 
@@ -72,7 +73,10 @@ export default function AssessmentHistoryPage() {
             isInterview: true,
             action_plan: il.ai_feedback?.action_plan,
             behavior: il.ai_feedback?.student_behavior,
-            feedback: il.ai_feedback?.feedback
+            feedback: il.ai_feedback?.feedback,
+            timeline: il.ai_feedback?.timeline,
+            resume_feedback: il.ai_feedback?.resume_feedback,
+            scores: il.ai_feedback?.scores
           }
         }))
       ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -186,17 +190,67 @@ export default function AssessmentHistoryPage() {
                   </div>
                 ) : selectedFeedback.assessment_type === 'live_interview' ? (
                   <div className="space-y-6">
-                    <div className="bg-cyan-500/10 rounded-xl p-4 border border-cyan-500/20">
-                      <p className="text-cyan-400 text-sm font-semibold mb-1">AI Feedback</p>
-                      <p className="text-white text-sm leading-relaxed whitespace-pre-wrap">{selectedFeedback.difficulty_breakdown?.feedback || "No feedback available."}</p>
+                    {/* Radar Chart for Phase 3 */}
+                    {selectedFeedback.difficulty_breakdown?.scores && (
+                      <div className="bg-slate-900/50 rounded-xl p-4 border border-indigo-500/20 h-64">
+                        <p className="text-indigo-400 text-sm font-semibold mb-2 text-center">Competency Radar</p>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={[
+                            { subject: 'Communication', A: selectedFeedback.difficulty_breakdown.scores.communication || 0, fullMark: 100 },
+                            { subject: 'Technical', A: selectedFeedback.difficulty_breakdown.scores.technical || 0, fullMark: 100 },
+                            { subject: 'Problem Solving', A: selectedFeedback.difficulty_breakdown.scores.problem_solving || 0, fullMark: 100 },
+                            { subject: 'Culture Fit', A: selectedFeedback.difficulty_breakdown.scores.culture_fit || 0, fullMark: 100 },
+                          ]}>
+                            <PolarGrid stroke="#4f46e5" strokeOpacity={0.2} />
+                            <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                            <Radar name="Student" dataKey="A" stroke="#38bdf8" fill="#38bdf8" fillOpacity={0.3} />
+                          </RadarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                    
+                    {/* Peer Benchmarking */}
+                    <div className="bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20 flex items-center justify-between">
+                      <div>
+                        <p className="text-emerald-400 text-sm font-semibold mb-1">Peer Benchmarking</p>
+                        <p className="text-white text-sm">
+                          {selectedFeedback.score >= 90 ? "Top 5% of all candidates" : 
+                           selectedFeedback.score >= 80 ? "Top 15% of all candidates" : 
+                           selectedFeedback.score >= 70 ? "Top 35% of all candidates" : 
+                           selectedFeedback.score >= 60 ? "Top 50% of all candidates" : 
+                           "Needs improvement to reach average"}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl font-bold text-emerald-400">
+                           {selectedFeedback.score >= 90 ? "95th" : 
+                            selectedFeedback.score >= 80 ? "85th" : 
+                            selectedFeedback.score >= 70 ? "65th" : 
+                            selectedFeedback.score >= 60 ? "50th" : 
+                            "< 50th"} Percentile
+                        </span>
+                      </div>
                     </div>
+
+                    <div className="bg-cyan-500/10 rounded-xl p-4 border border-cyan-500/20">
+                      <p className="text-cyan-400 text-sm font-semibold mb-1">Resume Validation Feedback</p>
+                      <p className="text-white text-sm leading-relaxed whitespace-pre-wrap">{selectedFeedback.difficulty_breakdown?.resume_feedback || "No resume feedback available."}</p>
+                    </div>
+
                     <div className="bg-indigo-500/10 rounded-xl p-4 border border-indigo-500/20">
                       <p className="text-indigo-400 text-sm font-semibold mb-1">Action Plan & Future Development</p>
                       <p className="text-white text-sm leading-relaxed whitespace-pre-wrap">{selectedFeedback.difficulty_breakdown?.action_plan || "No action plan available."}</p>
                     </div>
+
                     <div className="bg-white/5 rounded-xl p-4">
                       <p className="text-slate-400 text-sm font-semibold mb-1">Behavior & Proctoring Analysis</p>
                       <p className="text-slate-300 text-sm">{selectedFeedback.difficulty_breakdown?.behavior || "No behavioral data recorded."}</p>
+                    </div>
+
+                    <div className="bg-white/5 rounded-xl p-4 border border-slate-700">
+                      <p className="text-slate-400 text-sm font-semibold mb-1">Interview Timeline</p>
+                      <p className="text-slate-300 text-xs font-mono whitespace-pre-wrap">{selectedFeedback.difficulty_breakdown?.timeline || "No timeline available."}</p>
                     </div>
                   </div>
                 ) : (

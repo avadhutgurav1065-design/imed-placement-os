@@ -38,27 +38,36 @@ export default function LoginPage() {
     }
 
     if (data?.user) {
-      // Determine user role for routing
-      let profileRole = null;
-      
-      const { data: student } = await supabase.from('student_profiles').select('role').eq('id', data.user.id).maybeSingle();
-      if (student) profileRole = student.role;
-      
-      if (!profileRole) {
-        const { data: alumni } = await supabase.from('alumni_profiles').select('role').eq('id', data.user.id).maybeSingle();
-        if (alumni) profileRole = alumni.role;
+      try {
+        // Determine user role for routing safely
+        let profileRole = null;
+        
+        const { data: student, error: studentErr } = await supabase.from('student_profiles').select('role').eq('id', data.user.id).maybeSingle();
+        if (studentErr) console.warn("Student fetch error:", studentErr);
+        if (student) profileRole = student.role;
+        
+        if (!profileRole) {
+          const { data: alumni, error: alumniErr } = await supabase.from('alumni_profiles').select('role').eq('id', data.user.id).maybeSingle();
+          if (alumniErr) console.warn("Alumni fetch error:", alumniErr);
+          if (alumni) profileRole = alumni.role;
+        }
+        
+        if (!profileRole) {
+          const { data: admin, error: adminErr } = await supabase.from('admin_profiles').select('role').eq('id', data.user.id).maybeSingle();
+          if (adminErr) console.warn("Admin fetch error:", adminErr);
+          if (admin) profileRole = admin.role;
+        }
+        
+        const role = profileRole || data.user.user_metadata?.role || 'student';
+        
+        if (role === 'admin') router.push('/admin');
+        else if (role === 'alumni') router.push('/alumni');
+        else router.push('/student');
+      } catch (err: any) {
+        console.error("Login routing error:", err);
+        setError("Login successful, but routing failed. Please try again or contact support.");
+        setLoading(false);
       }
-      
-      if (!profileRole) {
-        const { data: admin } = await supabase.from('admin_profiles').select('role').eq('id', data.user.id).maybeSingle();
-        if (admin) profileRole = admin.role;
-      }
-      
-      const role = profileRole || data.user.user_metadata?.role || 'student';
-      
-      if (role === 'admin') router.push('/admin');
-      else if (role === 'alumni') router.push('/alumni');
-      else router.push('/student');
     }
   };
 

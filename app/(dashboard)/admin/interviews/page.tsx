@@ -59,6 +59,19 @@ export default function InterviewLogsPage() {
       },
     },
     {
+      key: "student_behavior",
+      header: "Proctoring / Behavior",
+      render: (row: any) => {
+        const behavior = row.ai_feedback?.student_behavior || "—";
+        const hasWarning = behavior.toLowerCase().includes("cheating") || behavior.toLowerCase().includes("reading") || behavior.toLowerCase().includes("away");
+        return (
+          <span className={`text-xs line-clamp-2 max-w-[200px] ${hasWarning ? "text-rose-400 font-semibold" : "text-slate-400"}`} title={behavior}>
+            {behavior}
+          </span>
+        );
+      },
+    },
+    {
       key: "created_at",
       header: "Timestamp",
       render: (row: any) => (
