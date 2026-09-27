@@ -41,14 +41,13 @@ export default function LoginPage() {
       return;
     }
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      
-      if (error) {
-        setError(error.message);
-        setLoading(false);
-        return;
-      }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
 
     if (data?.user) {
       try {
