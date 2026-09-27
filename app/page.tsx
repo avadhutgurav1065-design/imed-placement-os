@@ -1,6 +1,5 @@
 // SERVER COMPONENT - No "use client" = no hydration = immune to browser extensions
 import { cn } from "@/lib/utils";
-import { InstallPWA } from "@/components/shared/InstallPWA";
 
 // Inline GlassCard as a server-compatible component
 function Card({ children, className, ...props }: { children: React.ReactNode; className?: string; [k: string]: any }) {
@@ -74,10 +73,7 @@ export default function LandingPage() {
             >
               Enter Platform Space
             </a>
-            <InstallPWA 
-              className="w-full sm:w-auto" 
-              buttonClassName="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-full text-lg shadow-[0_0_30px_rgba(79,70,229,0.3)] hover:shadow-[0_0_50px_rgba(79,70,229,0.5)] transform hover:-translate-y-1" 
-            />
+
           </div>
         </div>
 

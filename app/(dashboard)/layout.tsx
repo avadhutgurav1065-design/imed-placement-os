@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/shared/NotificationBell";
-import { InstallPWA } from "@/components/shared/InstallPWA";
 
 const studentNav = [
   {
@@ -521,8 +520,6 @@ export default function DashboardLayout({
         })()}
       </nav>
 
-      {/* App Install Button (only visible if installable) */}
-      <InstallPWA />
 
       {/* User section */}
       <div className="border-t border-white/[0.06] px-4 py-4">
@@ -727,7 +724,6 @@ export default function DashboardLayout({
           })()}
         </nav>
 
-        {sidebarOpen && <InstallPWA />}
 
         {/* Sidebar toggle */}
         <div className="px-3 pb-2 pt-2">
