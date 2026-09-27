@@ -26,6 +26,11 @@ export default function AssessmentHistoryPage() {
         .select("*")
         .eq("user_id", user.id);
 
+      const { data: interviewLogs } = await supabase
+        .from("interview_logs")
+        .select("*")
+        .eq("student_id", user.id);
+
       const allAssessments = [
         ...(standardTests || []),
         ...(psychometricTests || []).map((pt: any) => ({
@@ -55,6 +60,19 @@ export default function AssessmentHistoryPage() {
             stress_tolerance: pt.stress_tolerance,
             adaptability: pt.adaptability,
             detail_orientation: pt.detail_orientation
+          }
+        })),
+        ...(interviewLogs || []).map((il: any) => ({
+          ...il,
+          assessment_type: "live_interview",
+          job_role: il.target_role,
+          score: il.overall_score || 0,
+          total_questions: 100,
+          difficulty_breakdown: {
+            isInterview: true,
+            action_plan: il.ai_feedback?.action_plan,
+            behavior: il.ai_feedback?.student_behavior,
+            feedback: il.ai_feedback?.feedback
           }
         }))
       ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -94,10 +112,10 @@ export default function AssessmentHistoryPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider \${
-                        test.assessment_type === 'technical' ? 'bg-indigo-500/10 text-indigo-400' : 'bg-rose-500/10 text-rose-400'
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                        test.assessment_type === 'technical' ? 'bg-indigo-500/10 text-indigo-400' : test.assessment_type === 'live_interview' ? 'bg-cyan-500/10 text-cyan-400' : 'bg-rose-500/10 text-rose-400'
                       }`}>
-                        {test.assessment_type}
+                        {test.assessment_type.replace('_', ' ')}
                       </span>
                       <span className="text-slate-500 text-sm">
                         {new Date(test.created_at).toLocaleDateString()}
@@ -107,10 +125,10 @@ export default function AssessmentHistoryPage() {
                     <p className="text-slate-400 text-sm mt-1">Total Questions/Challenges: {test.total_questions}</p>
                   </div>
                   <div className="text-right">
-                    <span className={`text-4xl font-extrabold \${
-                      (test.assessment_type === 'technical' ? test.score : (test.score / test.total_questions) * 100) >= 75 ? "text-emerald-400" : (test.assessment_type === 'technical' ? test.score : (test.score / test.total_questions) * 100) >= 50 ? "text-amber-400" : "text-rose-400"
+                    <span className={`text-4xl font-extrabold ${
+                      (test.assessment_type === 'technical' || test.assessment_type === 'live_interview' ? test.score : (test.score / test.total_questions) * 100) >= 75 ? "text-emerald-400" : (test.assessment_type === 'technical' || test.assessment_type === 'live_interview' ? test.score : (test.score / test.total_questions) * 100) >= 50 ? "text-amber-400" : "text-rose-400"
                     }`}>
-                      {test.assessment_type === 'technical' ? test.score : Math.round((test.score / test.total_questions) * 100)}%
+                      {test.assessment_type === 'technical' || test.assessment_type === 'live_interview' ? test.score : Math.round((test.score / test.total_questions) * 100)}%
                     </span>
                     <p className="text-slate-500 text-xs mt-1 uppercase font-semibold">Overall Score</p>
                   </div>
@@ -166,6 +184,21 @@ export default function AssessmentHistoryPage() {
                       ))}
                     </div>
                   </div>
+                ) : selectedFeedback.assessment_type === 'live_interview' ? (
+                  <div className="space-y-6">
+                    <div className="bg-cyan-500/10 rounded-xl p-4 border border-cyan-500/20">
+                      <p className="text-cyan-400 text-sm font-semibold mb-1">AI Feedback</p>
+                      <p className="text-white text-sm leading-relaxed whitespace-pre-wrap">{selectedFeedback.difficulty_breakdown?.feedback || "No feedback available."}</p>
+                    </div>
+                    <div className="bg-indigo-500/10 rounded-xl p-4 border border-indigo-500/20">
+                      <p className="text-indigo-400 text-sm font-semibold mb-1">Action Plan & Future Development</p>
+                      <p className="text-white text-sm leading-relaxed whitespace-pre-wrap">{selectedFeedback.difficulty_breakdown?.action_plan || "No action plan available."}</p>
+                    </div>
+                    <div className="bg-white/5 rounded-xl p-4">
+                      <p className="text-slate-400 text-sm font-semibold mb-1">Behavior & Proctoring Analysis</p>
+                      <p className="text-slate-300 text-sm">{selectedFeedback.difficulty_breakdown?.behavior || "No behavioral data recorded."}</p>
+                    </div>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {selectedFeedback.difficulty_breakdown ? (
@@ -196,3 +229,4 @@ export default function AssessmentHistoryPage() {
     </div>
   );
 }
+

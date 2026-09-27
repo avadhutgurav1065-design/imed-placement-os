@@ -103,14 +103,18 @@ End the interview politely.`;
       isComplete = true;
       const score = parseInt(scoreMatch[1]);
       
-      // Save to student_assessments so it shows up in Test Results and Dashboard
-      await supabase.from("student_assessments").insert({
+      // Save to interview_logs so it shows up in history
+      await supabase.from("interview_logs").insert({
         student_id: user.id,
-        assessment_type: "Multimodal Live Interview",
-        module_name: targetRole + " Live Interview",
-        score: score,
-        status: "completed",
-        feedback: aiResponse,
+        target_role: targetRole,
+        overall_score: score,
+        ai_feedback: {
+          feedback: aiResponse,
+          action_plan: aiResponse.split("Action Plan").pop() || "Keep practicing.",
+          student_behavior: "Analyzed via Live Webcam feed during the interview.",
+        },
+        questions: history?.filter((m: any) => m.role === "ai") || [],
+        answers: history?.filter((m: any) => m.role === "user") || [],
         created_at: new Date().toISOString()
       });
     }

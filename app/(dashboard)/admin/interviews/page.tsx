@@ -36,22 +36,27 @@ export default function InterviewLogsPage() {
       render: (row: any) => <span className="text-cyan-400 font-medium">{row.target_role || "General"}</span>,
     },
     {
-      key: "question",
-      header: "AI Question",
+      key: "score",
+      header: "Score",
       render: (row: any) => (
-        <span className="text-slate-300 text-xs line-clamp-2 max-w-xs" title={row.question}>
-          {row.question}
+        <span className={`font-bold ${
+          row.overall_score >= 75 ? "text-emerald-400" : row.overall_score >= 50 ? "text-amber-400" : "text-rose-400"
+        }`}>
+          {row.overall_score ? `${row.overall_score}%` : "—"}
         </span>
       ),
     },
     {
-      key: "feedback",
-      header: "AI Feedback",
-      render: (row: any) => (
-        <span className="text-slate-400 text-xs line-clamp-2 max-w-xs" title={row.feedback}>
-          {row.feedback}
-        </span>
-      ),
+      key: "action_plan",
+      header: "Future Plan",
+      render: (row: any) => {
+        const plan = row.ai_feedback?.action_plan || row.ai_feedback?.feedback || "—";
+        return (
+          <span className="text-slate-400 text-xs line-clamp-2 max-w-xs" title={plan}>
+            {plan}
+          </span>
+        );
+      },
     },
     {
       key: "created_at",
