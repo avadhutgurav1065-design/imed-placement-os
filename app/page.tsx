@@ -58,10 +58,21 @@ export default function LandingPage() {
               Campus &amp; Corporate.
             </span>
           </h1>
-          <div className="mb-8">
+          <div className="mb-8 flex flex-col items-center gap-3">
             <p className="text-[10px] md:text-xs font-bold text-slate-500 tracking-widest uppercase">
               Designed and developed by <span className="text-cyan-400">Avadhut Gurav</span>
             </p>
+            <a 
+              href="https://coderaft-ten.vercel.app/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700 hover:bg-slate-700 hover:border-cyan-500/50 text-xs text-cyan-400 hover:text-cyan-300 transition-all uppercase tracking-wider font-semibold shadow-sm"
+            >
+              <span>See Profile / Coderaft Solutions</span>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
           </div>
           <p className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10 font-medium">
             IMED Placement OS leverages Gemini AI to evaluate student readiness, conduct real-time technical interviews, and match cohorts to ingested corporate requirements with extreme precision.

@@ -549,9 +549,22 @@ export default function DashboardLayout({
 
       {/* Developer Credit */}
       <div className="px-4 pb-4 pt-2">
-        <p className="text-[10px] text-slate-500/60 font-medium text-center tracking-wide">
-          Designed and developed by Avadhut Gurav
-        </p>
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-[10px] text-slate-500/60 font-medium text-center tracking-wide">
+            Designed and developed by <span className="text-cyan-500/80">Avadhut Gurav</span>
+          </p>
+          <a 
+            href="https://coderaft-ten.vercel.app/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800/40 border border-slate-700/50 hover:bg-slate-700/80 hover:border-cyan-500/30 text-[9px] text-cyan-400/80 hover:text-cyan-300 transition-all uppercase tracking-wider"
+          >
+            <span>See Profile / Coderaft</span>
+            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
       </div>
     </>
   );
