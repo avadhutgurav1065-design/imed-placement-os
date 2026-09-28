@@ -1,0 +1,61 @@
+# IMED Placement OS - The Enterprise Blueprint
+
+To successfully test this software on 50-100 students and eventually move to full production, the prototype must be transformed into an enterprise-grade platform. A "bulletproof" system means no data leaks, no broken dashboards, flawless AI resilience, and strictly enforced role-based access.
+
+Here is the comprehensive, end-to-end master plan to achieve enterprise readiness.
+
+---
+
+## Phase 1: Security & The "Zero-Trust" API Rewrite
+Currently, many data pipelines in the app are "weak" because the API routes blindly trust what the frontend sends (e.g., accepting `user_id` in the request body) and use the `SUPABASE_SERVICE_ROLE_KEY` to force data into the database. This allows malicious data spoofing.
+
+**Action Items:**
+1.  **Remove Service Role Key:** Audit all 25+ API routes. Remove `SUPABASE_SERVICE_ROLE_KEY` usage for all user-generated data insertions (`/api/student/profile`, `/api/student/psychometric`, `/api/interview/*`).
+2.  **Enforce Server-Side Sessions:** Rewrite every API route to extract the `user_id` securely from the encrypted session cookie using `createServerClient()`.
+3.  **Strict Data Validation (Zod):** Implement Zod schemas for every API endpoint. If a frontend request is missing required fields or sends invalid types (e.g., a string instead of a number for a score), the API must instantly reject it with a `400 Bad Request` instead of crashing the database connection.
+4.  **Sanitize AI Prompts:** Sanitize all free-text student inputs before passing them to the Gemini API to prevent prompt injection attacks.
+
+## Phase 2: Fixing the Broken Dashboards (Data Pipelines)
+The reason the Admin Dashboard is empty is due to broken data pipelines. The database schema expects certain foreign keys (like `student_id`), but the APIs are sending mismatched data (like `student_email`).
+
+**Action Items:**
+1.  **Interview Logs Pipeline:** Fix `/api/interview/respond/route.ts`. It currently hardcodes an email. It must be refactored to securely extract the `auth.uid()` and insert that exact UUID into the `student_id` column of `interview_logs`.
+2.  **Psychometric Pipeline:** Fix `/api/student/psychometric/route.ts`. Ensure it correctly maps the `user_id` (auth.uid) so the Admin Dashboard can properly `JOIN` the psychometric scores with the `student_profiles` table.
+3.  **AI Resume Builder Pipeline:** Ensure `generated_resumes` are strictly tied to `student_id`.
+4.  **Admin Hydration Resilience:** Wrap all Admin dashboard data-fetching logic (`app/(dashboard)/admin/*/page.tsx`) in robust `try/catch` blocks. If one student's record is malformed, it should gracefully skip that record rather than crashing the entire table.
+
+## Phase 3: Enforcing Strict Role-Based Data Visibility
+The system has three distinct roles: Student, Admin, and Alumni. The data visibility must perfectly reflect the RLS (Row Level Security) policies defined in `schema.sql`.
+
+**Action Items:**
+1.  **Student View:** Ensure the Student Dashboard strictly queries data where `student_id = auth.uid()`. Students should NEVER be able to query the `/api/admin/*` routes.
+2.  **Admin View:** Admins have god-mode. Ensure all admin API routes verify `public.is_admin()` before returning any data. This ensures a student cannot spoof an admin token and view all placement records.
+3.  **Alumni View & Permissions:** Alumni should only see the `job_referrals` and `mentor_sessions` they are directly involved in. When an Alumni wants to connect with a Student, the request must either pass through an Admin approval flow, or strictly utilize the `mentor_sessions` table logic where `alumni_id = auth.uid()`.
+4.  **Enforce RLS everywhere:** Double-check that `public.is_admin()` cannot be spoofed via client-side JWT manipulation.
+
+## Phase 4: AI Engine Resilience & Scalability
+When 100 students are taking live mock interviews simultaneously, the Gemini AI will experience heavy load, rate limits, and occasional timeouts.
+
+**Action Items:**
+1.  **Exponential Backoff Wrapper:** Build a centralized utility function (`lib/ai/gemini.ts`) that wraps all AI calls. If Gemini returns a `429 Too Many Requests` or `503 Service Unavailable`, the wrapper will automatically pause for 2 seconds, retry, pause for 4 seconds, retry, etc.
+2.  **Graceful Degradation for Live Interviews:** If the AI completely fails during a live interview, the app must not crash. It should gracefully transition to a fallback mode, serving predefined, static technical questions from a backup database table.
+3.  **Background Processing:** For heavy AI tasks (like processing a 5-page resume into an Action Plan), the API should return a `202 Accepted` immediately, process the AI task in the background, and use Supabase Realtime to push the finished data to the student's dashboard, preventing browser timeouts.
+
+## Phase 5: UI/UX & Frontend Stability
+1.  **Mobile/PC Consistency:** Ensure the login page and all heavy UI components (like the interview proctoring view) are flawlessly responsive and do not suffer from hydration mismatches between mobile and PC browsers.
+2.  **Service Worker Caching:** Finalize the PWA service worker (`sw.js`). Ensure it employs a strict `Network First, Cache Fallback` strategy for all dynamic data (`/api/*`), and only caches static assets (`/images`, `.css`). This prevents students from seeing "stale" data.
+3.  **Global Loading States:** Implement skeleton loaders across all dashboards to ensure the UI feels snappy and premium while data is fetched.
+4.  **Error Boundaries:** Wrap all Next.js layouts in React Error Boundaries so that if a single widget fails, the rest of the dashboard remains usable.
+
+---
+
+### Execution Strategy
+
+I recommend we execute this blueprint in the following prioritized order to ensure the platform is secure and functional as quickly as possible:
+
+1.  **Step 1: The Pipeline Fix (Fixing the Dashboards).** We will fix the API routes (`interview_logs`, `psychometrics`) that are currently inserting invalid data so the Admin dashboard populates correctly.
+2.  **Step 2: The Security Lockdown (Zero-Trust).** We will systematically rewrite all 25+ API routes to use secure server-side sessions and remove all Service Role Key bypasses.
+3.  **Step 3: AI Resilience.** We will implement the exponential backoff and retry logic for all Gemini API calls to prevent crashes during the 50-student load test.
+4.  **Step 4: Admin Scalability & Error Handling.** We will add pagination to the admin tables and robust error boundaries to the frontend.
+
+Shall we begin immediately with **Step 1: The Pipeline Fix** to get the Admin Dashboard populated and functional?

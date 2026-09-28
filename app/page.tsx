@@ -1,4 +1,4 @@
-// SERVER COMPONENT - No "use client" = no hydration = immune to browser extensions
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 // Inline GlassCard as a server-compatible component
@@ -36,12 +36,12 @@ export default function LandingPage() {
           <span className="font-extrabold text-xl tracking-tight text-white">IMED OS</span>
         </div>
         <div className="flex gap-4">
-          <a href="/login" className="px-5 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors">
+          <Link href="/login" className="px-5 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors">
             Sign In
-          </a>
-          <a href="/login" className="px-6 py-2 text-sm font-bold text-slate-900 bg-cyan-400 rounded-full hover:bg-cyan-300 transition-all shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:shadow-[0_0_25px_rgba(34,211,238,0.5)]">
+          </Link>
+          <Link href="/login" className="px-6 py-2 text-sm font-bold text-slate-900 bg-cyan-400 rounded-full hover:bg-cyan-300 transition-all shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:shadow-[0_0_25px_rgba(34,211,238,0.5)]">
             Access Portal
-          </a>
+          </Link>
         </div>
       </nav>
 
@@ -78,12 +78,12 @@ export default function LandingPage() {
             IMED Placement OS leverages Gemini AI to evaluate student readiness, conduct real-time technical interviews, and match cohorts to ingested corporate requirements with extreme precision.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
-            <a 
+            <Link 
               href="/login"
               className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-full font-bold text-lg hover:from-cyan-400 hover:to-blue-500 transition-all shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:shadow-[0_0_50px_rgba(34,211,238,0.6)] transform hover:-translate-y-1 w-full sm:w-auto"
             >
               Enter Platform Space
-            </a>
+            </Link>
 
           </div>
         </div>

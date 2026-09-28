@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
+import { withGeminiBackoff } from "@/lib/ai/gemini";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
          You may include 'guess the output' or 'find the bug' style questions using small code snippets or scenario descriptions. 
          Provide exactly 8 'easy', 9 'medium', and 8 'hard' questions.`;
 
-    const response = await ai.models.generateContent({
+    const response = await withGeminiBackoff(() => ai.models.generateContent({
       model: MODEL_NAME,
       contents: [
         {
@@ -70,7 +71,7 @@ export async function POST(req: Request) {
         responseSchema: responseSchema,
         temperature: 0.7,
       },
-    });
+    }));
 
     const resultText = response.text;
     

@@ -13,18 +13,25 @@ export default function FundraisingPage() {
 
   useEffect(() => {
     async function loadData() {
-      const { data, error } = await supabase
-        .from("donations")
-        .select(`
-          *,
-          alumni:alumni_id ( full_name, email, current_company )
-        `)
-        .order("created_at", { ascending: false });
-        
-      if (!error && data) {
-        setDonations(data);
+      try {
+        const { data, error } = await supabase
+          .from("donations")
+          .select(`
+            *,
+            alumni:alumni_id ( full_name, email, current_company )
+          `)
+          .order("created_at", { ascending: false });
+          
+        if (!error && data) {
+          setDonations(data);
+        } else if (error) {
+          console.error("Error fetching donations:", error);
+        }
+      } catch (err) {
+        console.error("Failed to load fundraising data", err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     loadData();
   }, [supabase]);
@@ -52,7 +59,7 @@ export default function FundraisingPage() {
     {
       key: "amount",
       header: "Amount",
-      render: (row: any) => <span className="text-emerald-400 font-bold">₹{row.amount.toLocaleString()}</span>,
+      render: (row: any) => <span className="text-emerald-400 font-bold">₹{Number(row.amount || 0).toLocaleString()}</span>,
     },
     {
       key: "status",

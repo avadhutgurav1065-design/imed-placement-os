@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { createClient } from "@/lib/supabase/server";
-
+import { withGeminiBackoff } from "@/lib/ai/gemini";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const MODEL_NAME = "gemini-3.5-flash-lite";
 
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
       Output exactly these 3 in the specified JSON schema format. Use clear markdown in descriptions.`;
     }
 
-    const response = await ai.models.generateContent({
+    const response = await withGeminiBackoff(() => ai.models.generateContent({
       model: MODEL_NAME,
       contents: [
         {
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
         responseSchema: responseSchema,
         temperature: 0.7,
       },
-    });
+    }));
 
     const resultText = response.text;
     

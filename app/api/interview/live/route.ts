@@ -1,18 +1,13 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
-
+import { withGeminiBackoff } from "@/lib/ai/gemini";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function POST(req: Request) {
   try {
-    const supabaseUser = await createServerClient();
-    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
+    const supabase = await createServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -120,8 +115,25 @@ End the interview politely.`;
       }
     }
 
-    const result = await chat.sendMessage(parts);
-    const aiResponse = result.response.text().trim();
+    let aiResponse = "";
+    try {
+      const result = await withGeminiBackoff(() => chat.sendMessage(parts));
+      aiResponse = result.response.text().trim();
+    } catch (apiError) {
+      console.warn("AI Engine failed, using static fallback for interview continuation:", apiError);
+      
+      if (totalExchanges >= 5) {
+         aiResponse = `[SCORE_COMMUNICATION: 75]\n[SCORE_TECHNICAL: 75]\n[SCORE_PROBLEM_SOLVING: 75]\n[SCORE_CULTURE_FIT: 75]\n[SCORE: 75]\n[BEHAVIOR: AI connection lost, fallback used.]\n[RESUME_FEEDBACK: N/A]\n[ACTION_PLAN: Connection dropped, partial evaluation only.]\nThank you for your time. This concludes our interview.`;
+      } else {
+         const fallbacks = [
+           "Can you explain a complex project you've worked on recently?",
+           "How do you handle disagreements with team members?",
+           "What is your approach to debugging difficult technical issues?",
+           "Where do you see your career heading in the next few years?"
+         ];
+         aiResponse = fallbacks[(totalExchanges - 1) % fallbacks.length];
+      }
+    }
 
     // Check if the AI ended the interview and gave a score
     const scoreMatch = aiResponse.match(/\[SCORE:\s*(\d+)\]/i);

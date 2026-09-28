@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateGeminiContent } from "@/lib/ai/gemini";
 import { createClient } from "@/lib/supabase/server";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
@@ -40,7 +41,6 @@ export async function POST(req: Request) {
         ]
       };
     } else {
-      const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
       const prompt = `
         You are an expert technical recruiter and resume writer. 
         I am a computer science student looking for a job.
@@ -65,8 +65,7 @@ export async function POST(req: Request) {
           ]
         }
       `;
-
-      const result = await model.generateContent(prompt);
+      const result = await generateGeminiContent(prompt);
       const responseText = result.response.text();
       const jsonString = responseText.replace(/```json\n?|\n?```/g, "").trim();
       parsedResume = JSON.parse(jsonString);

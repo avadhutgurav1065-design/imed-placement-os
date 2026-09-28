@@ -26,22 +26,34 @@ export default function JobMatchesPage() {
   }, []);
 
   async function checkForAnalysis() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        setHasAnalysis(false);
+        return;
+      }
 
-    const { data } = await supabase
-      .from("gap_analyses")
-      .select("id, student_name")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+      const { data, error } = await supabase
+        .from("gap_analyses")
+        .select("id, student_name")
+        .eq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
 
-    if (data) {
-      setHasAnalysis(true);
-      setStudentName(data.student_name || "");
-      // Auto-fetch on load
-      fetchMatches(user.id);
-    } else {
+      if (error) {
+        console.error("Error checking gap analysis:", error);
+      }
+
+      if (data) {
+        setHasAnalysis(true);
+        setStudentName(data.student_name || "");
+        // Auto-fetch on load
+        fetchMatches(user.id);
+      } else {
+        setHasAnalysis(false);
+      }
+    } catch (err) {
+      console.error("Failed to check analysis", err);
       setHasAnalysis(false);
     }
   }

@@ -12,14 +12,14 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
-      .from("student_profiles")
-      .select("role")
-      .eq("user_id", user.id)
+    const { data: adminProfile } = await supabase
+      .from("admin_profiles")
+      .select("id")
+      .eq("id", user.id)
       .maybeSingle();
 
-    if (profile?.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!adminProfile) {
+      return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
     }
 
     // Fetch real Gap Analyses telemetry

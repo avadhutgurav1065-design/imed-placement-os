@@ -29,19 +29,30 @@ export default function DrivesPage() {
   }, []);
 
   async function loadDrives() {
-    const { data } = await supabase
-      .from("campus_drives")
-      .select("*")
-      .order("drive_date", { ascending: true });
-    setDrives(data || []);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase
+        .from("campus_drives")
+        .select("*")
+        .order("drive_date", { ascending: true });
+      if (error) throw error;
+      setDrives(data || []);
+    } catch (err) {
+      console.error("Error loading drives:", err);
+      setDrives([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function loadJobs() {
-    const res = await fetch("/api/corporate-jobs");
-    if (res.ok) {
-      const data = await res.json();
-      setJobs(data.jobs || []);
+    try {
+      const res = await fetch("/api/corporate-jobs");
+      if (res.ok) {
+        const data = await res.json();
+        setJobs(data.jobs || []);
+      }
+    } catch (err) {
+      console.error("Error loading jobs:", err);
     }
   }
 

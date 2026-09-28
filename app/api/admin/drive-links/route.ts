@@ -11,6 +11,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { data: adminProfile } = await supabase
+      .from("admin_profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!adminProfile) {
+      return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
+    }
+
     const { companyName } = await req.json();
 
     if (!companyName) {
@@ -49,6 +59,16 @@ export async function GET() {
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data: adminProfile } = await supabase
+      .from("admin_profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!adminProfile) {
+      return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
     }
 
     // Fetch drive links created by this admin

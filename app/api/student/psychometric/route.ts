@@ -1,22 +1,31 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
 
 // Initialize Gemini Client
 const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Initialize Supabase Admin Client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
 export async function POST(req: Request) {
   try {
-    const { targetRole, qnaPairs, user_id, email } = await req.json();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user_id || !qnaPairs || !targetRole) {
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { targetRole, qnaPairs } = await req.json();
+
+    if (!qnaPairs || !targetRole) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+
+    // Fetch the student's actual profile for name/email
+    const { data: profile } = await supabase
+      .from("student_profiles")
+      .select("full_name, email")
+      .eq("id", user.id)
+      .single();
 
     // Define the schema for the Psychometric Evaluation
     const responseSchema = {
@@ -108,8 +117,8 @@ export async function POST(req: Request) {
     const { error: dbError } = await supabase
       .from("psychometric_assessments")
       .insert({
-        user_id,
-        student_name: email?.split("@")[0] || "Unknown Student",
+        user_id: user.id,
+        student_name: profile?.full_name || user.email?.split("@")[0] || "Unknown Student",
         target_role: targetRole,
         raw_answers: qnaPairs,
         analytical_ability: evaluation.analytical_ability,

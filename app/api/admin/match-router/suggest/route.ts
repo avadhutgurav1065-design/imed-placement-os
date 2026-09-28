@@ -1,14 +1,28 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+import { generateGeminiContent } from '@/lib/ai/gemini';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data: adminProfile } = await supabase
+      .from("admin_profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+
+    if (!adminProfile) {
+      return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
+    }
+
     const { studentId } = await req.json();
 
     // 1. Fetch Student's latest Gap Analysis
@@ -61,8 +75,7 @@ export async function POST(req: Request) {
       Only return valid JSON. Do not include markdown formatting like \`\`\`json.
     `;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
-    const result = await model.generateContent(systemPrompt);
+    const result = await generateGeminiContent(systemPrompt);
     let rawText = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
     
     // Attempt to parse

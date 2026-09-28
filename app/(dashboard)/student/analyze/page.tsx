@@ -21,6 +21,40 @@ export default function GapAnalyzerPage() {
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisData, setAnalysisData] = useState<any>(null);
+  const [recordId, setRecordId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!recordId) return;
+
+    const channel = supabase
+      .channel('custom-update-channel')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'gap_analyses', filter: `id=eq.${recordId}` },
+        (payload: any) => {
+          const newData = payload.new;
+          if (newData.status === 'completed') {
+            setAnalysisData({
+              matchScore: newData.match_score,
+              missingSkills: newData.missing_skills,
+              actionPlan: newData.action_plan,
+              candidateName: newData.student_name,
+            });
+            setIsAnalyzing(false);
+            setRecordId(null);
+          } else if (newData.status === 'failed') {
+            alert("Analysis failed on the server. Please try again.");
+            setIsAnalyzing(false);
+            setRecordId(null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [recordId]);
 
   const handleFileSelect = async (selectedFile: File) => {
     setFile(selectedFile);
@@ -90,12 +124,18 @@ export default function GapAnalyzerPage() {
 
       if (!response.ok) throw new Error("AI Engine failed to process");
 
-      const data = await response.json();
-      setAnalysisData(data);
+      if (response.status === 202) {
+        const data = await response.json();
+        setRecordId(data.recordId);
+        // Do not set isAnalyzing to false here, wait for the realtime update
+      } else {
+        const data = await response.json();
+        setAnalysisData(data);
+        setIsAnalyzing(false);
+      }
     } catch (error) {
       console.error(error);
       alert("Analysis failed. Please try again.");
-    } finally {
       setIsAnalyzing(false);
     }
   };

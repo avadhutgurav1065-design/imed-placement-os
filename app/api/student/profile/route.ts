@@ -1,28 +1,24 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createClient } from "@/lib/supabase/server";
 
 // GET profile for a user
 export async function GET(req: Request) {
   try {
-    const url = new URL(req.url);
-    const userId = url.searchParams.get("user_id");
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!userId) {
-      return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { data, error } = await supabase
       .from("student_profiles")
       .select("*")
-      .eq("user_id", userId)
+      .eq("id", user.id)
       .maybeSingle();
 
     if (error) {
+      console.error("Error fetching profile:", error);
       return NextResponse.json({ profile: null });
     }
 
@@ -35,27 +31,30 @@ export async function GET(req: Request) {
 // CREATE or UPDATE profile
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { user_id, full_name, enrollment_no, branch, batch_year, cgpa, email, role } = body;
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user_id) {
-      return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const body = await req.json();
+    const { full_name, enrollment_no, branch, batch_year, cgpa, email, role } = body;
 
     const { data, error } = await supabase
       .from("student_profiles")
       .upsert(
         {
-          user_id,
+          id: user.id,
           full_name,
           enrollment_no,
           branch,
           batch_year,
           cgpa,
-          email,
+          email: email || user.email,
           role: role || "student",
         },
-        { onConflict: "email" }
+        { onConflict: "id" }
       )
       .select()
       .maybeSingle();

@@ -28,20 +28,25 @@ export default function MatchRouterPage() {
 
   useEffect(() => {
     async function loadData() {
-      // Load active corporate jobs
-      const resDrives = await fetch("/api/corporate-jobs");
-      if (resDrives.ok) {
-        const data = await resDrives.json();
-        setDrives(data.jobs || []);
-      }
-      
-      // Load all students who took gap analysis
-      const { data: analyses } = await supabase.from('gap_analyses').select('user_id, student_name');
-      if (analyses) {
-        // Unique students
-        const unique = Array.from(new Set(analyses.map((a: any) => a.user_id)))
-          .map(id => analyses.find((a: any) => a.user_id === id));
-        setStudents(unique);
+      try {
+        // Load active corporate jobs
+        const resDrives = await fetch("/api/corporate-jobs");
+        if (resDrives.ok) {
+          const data = await resDrives.json();
+          setDrives(data.jobs || []);
+        }
+        
+        // Load all students who took gap analysis
+        const { data: analyses, error } = await supabase.from('gap_analyses').select('user_id, student_name');
+        if (error) throw error;
+        if (analyses) {
+          // Unique students
+          const unique = Array.from(new Set(analyses.map((a: any) => a.user_id)))
+            .map(id => analyses.find((a: any) => a.user_id === id));
+          setStudents(unique);
+        }
+      } catch (err) {
+        console.error("Error loading router data:", err);
       }
     }
     loadData();

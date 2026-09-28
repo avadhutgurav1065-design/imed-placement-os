@@ -18,13 +18,13 @@ export async function POST(req: Request) {
     }
     
     // Check if user is admin
-    const { data: adminProfile } = await supabaseService
+    const { data: adminProfile } = await supabaseUser
       .from("admin_profiles")
       .select("id")
       .eq("id", user.id)
       .single();
       
-    if (!adminProfile && user.user_metadata?.role !== 'admin') {
+    if (!adminProfile) {
       return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
     }
 
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
 
         if (existingUser) {
           students.push({
-            user_id: existingUser.id,
+            id: existingUser.id,
             full_name: row.full_name,
             email: row.email,
             enrollment_no: row.enrollment_no || null,
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
       }
 
       students.push({
-        user_id: authData.user.id,
+        id: authData.user.id,
         full_name: row.full_name,
         email: row.email,
         enrollment_no: row.enrollment_no || null,
@@ -118,9 +118,9 @@ export async function POST(req: Request) {
 
     // Bulk upsert profiles
     if (students.length > 0) {
-      const { error: dbError } = await supabaseService
+      const { error: dbError } = await supabaseUser
         .from("student_profiles")
-        .upsert(students, { onConflict: "user_id" });
+        .upsert(students, { onConflict: "id" });
 
       if (dbError) {
         return NextResponse.json(

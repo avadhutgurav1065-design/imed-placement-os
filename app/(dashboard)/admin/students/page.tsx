@@ -19,12 +19,19 @@ export default function StudentsPage() {
   }, []);
 
   async function loadStudents() {
-    const { data } = await supabase
-      .from("student_profiles")
-      .select("*")
-      .order("full_name", { ascending: true });
-    setStudents(data || []);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase
+        .from("student_profiles")
+        .select("*")
+        .order("full_name", { ascending: true });
+      if (error) throw error;
+      setStudents(data || []);
+    } catch (err) {
+      console.error("Error loading students:", err);
+      setStudents([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const handleImport = async () => {

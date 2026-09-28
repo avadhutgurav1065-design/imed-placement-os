@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { createClient } from "@/lib/supabase/server";
+import { withGeminiBackoff } from "@/lib/ai/gemini";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const MODEL_NAME = "gemini-3.5-flash-lite";
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
     `).join('\n\n')}
     `;
 
-    const response = await ai.models.generateContent({
+    const response = await withGeminiBackoff(() => ai.models.generateContent({
       model: MODEL_NAME,
       contents: [
         {
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
         responseSchema: responseSchema,
         temperature: 0.3, 
       },
-    });
+    }));
 
     const resultText = response.text;
     
@@ -89,14 +90,18 @@ export async function POST(req: Request) {
 
     // Save to DB
     const { error: dbError } = await supabase
-      .from("student_assessments")
+      .from("interview_logs")
       .insert({
         student_id: session.user.id,
-        assessment_type: "technical",
-        job_role: jobRole,
-        score: data.overallScore,
-        total_questions: challenges.length,
-        difficulty_breakdown: data.feedback // Storing feedback array in this jsonb field for now
+        target_role: jobRole,
+        overall_score: data.overallScore,
+        questions: challenges,
+        answers: responses,
+        ai_feedback: {
+          feedback: data.feedback,
+          generalAdvice: data.generalAdvice,
+          assessment_type: "technical"
+        }
       });
 
     if (dbError) {

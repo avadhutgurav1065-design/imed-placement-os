@@ -16,13 +16,13 @@ export async function POST(req: Request) {
     }
     
     // Check if user is admin
-    const { data: adminProfile } = await supabaseService
+    const { data: adminProfile } = await supabaseUser
       .from("admin_profiles")
       .select("id")
       .eq("id", user.id)
       .single();
       
-    if (!adminProfile && user.user_metadata?.role !== 'admin') {
+    if (!adminProfile) {
       return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
     }
 
@@ -50,10 +50,49 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "None of the provided rows contained a valid 'email'." }, { status: 400 });
     }
 
-    // Upsert into Supabase (requires 'email' to be UNIQUE in the database schema)
-    const { error: insertError } = await supabaseService
+    const alumniToInsert: any[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < validRows.length; i++) {
+      const row = validRows[i];
+
+      // Create auth user first (if they don't exist)
+      const { data: authData, error: authError } = await supabaseService.auth.admin.createUser({
+        email: row.email,
+        password: `ALUMNI${Date.now()}!`, // Temporary password
+        email_confirm: true,
+      });
+
+      if (authError) {
+        // User might already exist — try to look them up
+        const { data: existingUsers } = await supabaseService.auth.admin.listUsers();
+        const existingUser = existingUsers?.users?.find((u) => u.email === row.email);
+
+        if (existingUser) {
+          alumniToInsert.push({
+            id: existingUser.id,
+            ...row
+          });
+        } else {
+          errors.push(`Row ${i + 1}: Failed to create user — ${authError.message}`);
+        }
+        continue;
+      }
+
+      alumniToInsert.push({
+        id: authData.user.id,
+        ...row
+      });
+    }
+
+    if (alumniToInsert.length === 0) {
+      return NextResponse.json({ error: "Failed to create any alumni users.", errors }, { status: 500 });
+    }
+
+    // Upsert into Supabase
+    const { error: insertError } = await supabaseUser
       .from('alumni_profiles')
-      .upsert(validRows, { onConflict: 'email' });
+      .upsert(alumniToInsert, { onConflict: 'id' });
 
     if (insertError) {
       throw insertError;

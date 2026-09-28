@@ -1,30 +1,24 @@
 import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
-import { createClient as createServerClient } from "@/lib/supabase/server";
-
-const supabaseService = createServiceClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(req: Request) {
   try {
-    const supabaseUser = await createServerClient();
-    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     
-    // Check if user is admin
-    const { data: adminProfile } = await supabaseService
+    // Check if user is admin using normal client (relies on RLS)
+    const { data: adminProfile } = await supabase
       .from("admin_profiles")
       .select("id")
       .eq("id", user.id)
       .single();
       
-    if (!adminProfile && user.user_metadata?.role !== 'admin') {
+    if (!adminProfile) {
       return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
     }
 
@@ -34,9 +28,9 @@ export async function GET(req: Request) {
     if (type === "overview") {
       // KPI summary stats
       const [analysesRes, profilesRes, drivesRes] = await Promise.all([
-        supabaseService.from("gap_analyses").select("match_score, missing_skills, student_name"),
-        supabaseService.from("student_profiles").select("id, branch, batch_year"),
-        supabaseService.from("campus_drives").select("id, status"),
+        supabase.from("gap_analyses").select("match_score, missing_skills, student_name"),
+        supabase.from("student_profiles").select("id, branch, batch_year"),
+        supabase.from("campus_drives").select("id, status"),
       ]);
 
       const analyses = analysesRes.data || [];
@@ -69,7 +63,7 @@ export async function GET(req: Request) {
       const branch = url.searchParams.get("branch");
       const batchYear = url.searchParams.get("batch_year");
 
-      let query = supabaseService.from("gap_analyses").select("missing_skills");
+      let query = supabase.from("gap_analyses").select("missing_skills");
 
       // If we have branch/batchYear filters, we need to join with profiles
       const { data: analyses, error } = await query;
@@ -109,7 +103,7 @@ export async function GET(req: Request) {
     }
 
     if (type === "risk-telemetry") {
-      const { data: analyses, error } = await supabaseService
+      const { data: analyses, error } = await supabase
         .from("gap_analyses")
         .select("*")
         .lt("match_score", 75)
@@ -120,7 +114,7 @@ export async function GET(req: Request) {
       // Get action plan completion rates
       const atRiskStudents = await Promise.all(
         (analyses || []).map(async (analysis) => {
-          const { data: progress } = await supabaseService
+          const { data: progress } = await supabase
             .from("action_plan_progress")
             .select("is_completed")
             .eq("analysis_id", analysis.id);
@@ -145,7 +139,7 @@ export async function GET(req: Request) {
       const driveId = url.searchParams.get("drive_id");
       const minScore = parseInt(url.searchParams.get("min_score") || "75");
 
-      const { data: qualifiedStudents, error } = await supabaseService
+      const { data: qualifiedStudents, error } = await supabase
         .from("gap_analyses")
         .select("*")
         .gte("match_score", minScore)

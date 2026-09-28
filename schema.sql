@@ -165,7 +165,19 @@ CREATE TABLE public.campus_drives (
 );
 
 -- =======================================================
--- 8. CAMPUS DRIVE REGISTRATIONS
+-- 8. CORPORATE DRIVE LINKS (Magic Links for Recruiters)
+-- =======================================================
+CREATE TABLE public.corporate_drive_links (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_name TEXT NOT NULL,
+  magic_token TEXT UNIQUE NOT NULL,
+  created_by UUID REFERENCES public.admin_profiles(id) ON DELETE CASCADE,
+  status TEXT DEFAULT 'Active',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =======================================================
+-- 9. CAMPUS DRIVE REGISTRATIONS
 -- =======================================================
 
 CREATE TABLE public.campus_drive_registrations (
@@ -448,6 +460,13 @@ CREATE POLICY "Students see own interview logs" ON public.interview_logs
 CREATE POLICY "Students insert own interview logs" ON public.interview_logs
   FOR INSERT WITH CHECK (student_id = auth.uid() OR public.is_admin());
 CREATE POLICY "Admins manage interview logs" ON public.interview_logs
+  FOR ALL USING (public.is_admin());
+
+-- Corporate Drive Links
+ALTER TABLE public.corporate_drive_links ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can view active drive links" ON public.corporate_drive_links
+  FOR SELECT USING (status = 'Active');
+CREATE POLICY "Admins manage drive links" ON public.corporate_drive_links
   FOR ALL USING (public.is_admin());
 
 -- =======================================================

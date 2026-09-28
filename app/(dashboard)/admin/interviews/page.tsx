@@ -13,13 +13,20 @@ export default function InterviewLogsPage() {
 
   useEffect(() => {
     async function loadLogs() {
-      const { data } = await supabase
-        .from("interview_logs")
-        .select("*")
-        .order("created_at", { ascending: false });
-      
-      setLogs(data || []);
-      setLoading(false);
+      try {
+        const { data, error } = await supabase
+          .from("interview_logs")
+          .select("*")
+          .order("created_at", { ascending: false });
+        
+        if (error) throw error;
+        setLogs(data || []);
+      } catch (err) {
+        console.error("Error loading interview logs:", err);
+        setLogs([]);
+      } finally {
+        setLoading(false);
+      }
     }
     loadLogs();
   }, []);

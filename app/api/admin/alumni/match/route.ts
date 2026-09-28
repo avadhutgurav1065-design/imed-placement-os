@@ -10,6 +10,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { data: adminProfile } = await supabase
+      .from("admin_profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!adminProfile) {
+      return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
+    }
+
     // 1. Fetch struggling students (readiness_score < 50)
     const { data: strugglingStudents, error: studentsError } = await supabase
       .from("student_profiles")
@@ -68,6 +78,22 @@ export async function POST(req: Request) {
 export async function GET() {
   try {
     const supabase = await createClient();
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data: adminProfile } = await supabase
+      .from("admin_profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!adminProfile) {
+      return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
+    }
 
     // Fetch existing active pairs, joining student and alumni info
     // For MVP, if we don't have the relations setup perfectly in Supabase, we can just return mock data if it fails

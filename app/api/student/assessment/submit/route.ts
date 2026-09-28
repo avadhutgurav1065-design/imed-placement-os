@@ -18,14 +18,16 @@ export async function POST(req: Request) {
     }
 
     const { data, error } = await supabase
-      .from("student_assessments")
+      .from("interview_logs")
       .insert({
         student_id: session.user.id,
-        job_role: jobRole,
-        assessment_type: assessmentType,
-        score,
-        total_questions: totalQuestions,
-        difficulty_breakdown: difficultyBreakdown,
+        target_role: jobRole,
+        overall_score: score,
+        ai_feedback: {
+          assessment_type: assessmentType,
+          total_questions: totalQuestions,
+          difficulty_breakdown: difficultyBreakdown,
+        },
       })
       .select()
       .single();

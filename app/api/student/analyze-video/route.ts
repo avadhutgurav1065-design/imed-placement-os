@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { withGeminiBackoff } from "@/lib/ai/gemini";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
       }
     `;
 
-    const result = await model.generateContent([
+    const result = await withGeminiBackoff(() => model.generateContent([
       {
         inlineData: {
           data: mediaBase64,
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
         },
       },
       prompt,
-    ]);
+    ]));
 
     const responseText = result.response.text();
     // Clean up markdown code blocks if the model wrapped the JSON in them

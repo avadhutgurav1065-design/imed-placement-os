@@ -1,24 +1,25 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createClient } from "@/lib/supabase/server";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-
-/**
- * LinkedIn Job Scraper via RapidAPI
- * 
- * To activate: 
- * 1. Sign up at https://rapidapi.com
- * 2. Subscribe to a LinkedIn Jobs API (e.g., "LinkedIn Jobs Search" by jaypat)
- * 3. Add RAPIDAPI_KEY and RAPIDAPI_HOST to your .env.local
- */
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data: adminProfile } = await supabase
+      .from("admin_profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+
+    if (!adminProfile) {
+      return NextResponse.json({ error: "Forbidden - Admins only" }, { status: 403 });
+    }
+
     const { companies, location } = await req.json();
 
     if (!companies || !Array.isArray(companies) || companies.length === 0) {
@@ -83,19 +84,11 @@ export async function POST(req: Request) {
 
           if (existing && existing.length > 0) continue;
 
-          // Vectorize via Gemini Embedding
-          const embeddingModel = genAI.getGenerativeModel({
-            model: "text-embedding-004",
-          });
-          const embedResult = await embeddingModel.embedContent(rawRequirements);
-          const embedding = embedResult.embedding.values;
-
-          // Store in pgvector
+          // Store in pgvector (Actually, schema doesn't have an embedding column right now)
           const { error: dbError } = await supabase.from("corporate_jobs").insert({
             company_name: company,
             role_title: roleTitle,
             raw_requirements: rawRequirements.substring(0, 5000),
-            embedding,
           });
 
           if (!dbError) {

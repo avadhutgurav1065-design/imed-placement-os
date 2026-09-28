@@ -19,32 +19,61 @@ function DriveLinkContent() {
   const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
-    // Validate the token (Mock validation for MVP)
-    setTimeout(() => {
-      if (token && token.length > 5) {
-        setIsValid(true);
-        setCompanyName("Acme Corp"); // Simulated lookup
+    const validateToken = async () => {
+      try {
+        const res = await fetch('/api/drive/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          setIsValid(true);
+          setCompanyName(data.companyName);
+        } else {
+          setIsValid(false);
+        }
+      } catch (err) {
+        setIsValid(false);
+      } finally {
+        setIsValidating(false);
       }
+    };
+    
+    if (token) {
+      validateToken();
+    } else {
       setIsValidating(false);
-    }, 1000);
+    }
   }, [token]);
 
-  const handleMatch = () => {
+  const handleMatch = async () => {
     if (!jdText.trim()) return;
     setIsMatching(true);
+    setHasSearched(false);
     
-    // Simulate AI Vector Matching delay
-    setTimeout(() => {
-      setMatchedStudents([
-        { name: "Rahul Sharma", score: 94, branch: "B.Tech Computer Science", skills: ["React", "Node.js", "AWS"] },
-        { name: "Aditi Verma", score: 88, branch: "MCA", skills: ["Python", "Django", "PostgreSQL"] },
-        { name: "Vikram Singh", score: 82, branch: "BCA", skills: ["Java", "Spring Boot", "MySQL"] },
-        { name: "Sneha Patel", score: 79, branch: "B.Tech IT", skills: ["JavaScript", "TypeScript", "Next.js"] },
-        { name: "Karan Johar", score: 76, branch: "B.Tech Computer Science", skills: ["C++", "Data Structures", "Algorithms"] },
-      ]);
+    try {
+      const res = await fetch('/api/drive/match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, jdText })
+      });
+      const data = await res.json();
+      
+      if (data.success && data.matches) {
+        setMatchedStudents(data.matches);
+      } else {
+        alert(data.error || "Failed to find matches");
+        setMatchedStudents([]);
+      }
+    } catch (err) {
+      alert("An error occurred during matching.");
+      setMatchedStudents([]);
+    } finally {
       setIsMatching(false);
       setHasSearched(true);
-    }, 2500);
+    }
   };
 
   if (isValidating) {

@@ -20,68 +20,77 @@ export default function StudentHome() {
 
   useEffect(() => {
     async function loadStats() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (user) {
-        const { data: analyses } = await supabase
-          .from("gap_analyses")
-          .select("*")
-          .eq("student_id", user.id);
+        if (user) {
+          const { data: analyses, error: err1 } = await supabase
+            .from("gap_analyses")
+            .select("*")
+            .eq("student_id", user.id);
 
-        const { data: stdTests } = await supabase
-          .from("student_assessments")
-          .select("*")
-          .eq("student_id", user.id);
+          const { data: stdTests, error: err2 } = await supabase
+            .from("student_assessments")
+            .select("*")
+            .eq("student_id", user.id);
 
-        const { data: psychTests } = await supabase
-          .from("psychometric_assessments")
-          .select("*")
-          .eq("user_id", user.id);
+          const { data: psychTests, error: err3 } = await supabase
+            .from("psychometric_assessments")
+            .select("*")
+            .eq("user_id", user.id);
 
-        const allActivity = [
-          ...(analyses || []).map((a: any) => ({
-             ...a,
-             type: 'gap_analysis',
-             score: a.match_score || 0,
-             title: `Resume Match - ${a.job_role || 'General'}`,
-             date: a.created_at
-          })),
-          ...(stdTests || []).map((t: any) => ({
-             ...t,
-             type: 'assessment',
-             score: t.assessment_type === 'technical' ? t.score : Math.round((t.score / t.total_questions) * 100) || 0,
-             title: `${t.assessment_type === 'technical' ? 'Technical' : 'Aptitude'} Test - ${t.job_role}`,
-             date: t.created_at
-          })),
-          ...(psychTests || []).map((pt: any) => ({
-             ...pt,
-             type: 'psychometric',
-             score: Math.round((pt.analytical_ability + pt.execution_delivery + pt.interpersonal_skills + pt.team_collaboration + pt.leadership_potential + pt.stress_tolerance + pt.adaptability + pt.detail_orientation) / 8) || 0,
-             title: `Psychometric Test - ${pt.target_role}`,
-             date: pt.created_at
-          }))
-        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          if (err1) console.error(err1);
+          if (err2) console.error(err2);
+          if (err3) console.error(err3);
 
-        const totalScans = allActivity.length;
-        const avgScore =
-          totalScans > 0
-            ? Math.round(allActivity.reduce((s: any, a: any) => s + (a.score || 0), 0) / totalScans)
-            : 0;
-        const bestScore =
-          totalScans > 0
-            ? Math.max(...allActivity.map((a: any) => a.score || 0))
-            : 0;
+          const allActivity = [
+            ...(analyses || []).map((a: any) => ({
+               ...a,
+               type: 'gap_analysis',
+               score: a.match_score || 0,
+               title: `Resume Match - ${a.job_role || 'General'}`,
+               date: a.created_at
+            })),
+            ...(stdTests || []).map((t: any) => ({
+               ...t,
+               type: 'assessment',
+               score: t.assessment_type === 'technical' ? t.score : Math.round((t.score / t.total_questions) * 100) || 0,
+               title: `${t.assessment_type === 'technical' ? 'Technical' : 'Aptitude'} Test - ${t.job_role}`,
+               date: t.created_at
+            })),
+            ...(psychTests || []).map((pt: any) => ({
+               ...pt,
+               type: 'psychometric',
+               score: Math.round(((pt.analytical_ability || 0) + (pt.execution_delivery || 0) + (pt.interpersonal_skills || 0) + (pt.team_collaboration || 0) + (pt.leadership_potential || 0) + (pt.stress_tolerance || 0) + (pt.adaptability || 0) + (pt.detail_orientation || 0)) / 8) || 0,
+               title: `Psychometric Test - ${pt.target_role}`,
+               date: pt.created_at
+            }))
+          ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-        setStats({
-          totalScans,
-          avgScore,
-          bestScore,
-          recentScans: allActivity.slice(0, 5),
-        });
+          const totalScans = allActivity.length;
+          const avgScore =
+            totalScans > 0
+              ? Math.round(allActivity.reduce((s: any, a: any) => s + (a.score || 0), 0) / totalScans)
+              : 0;
+          const bestScore =
+            totalScans > 0
+              ? Math.max(...allActivity.map((a: any) => a.score || 0))
+              : 0;
+
+          setStats({
+            totalScans,
+            avgScore,
+            bestScore,
+            recentScans: allActivity.slice(0, 5),
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load student stats:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     loadStats();
   }, []);

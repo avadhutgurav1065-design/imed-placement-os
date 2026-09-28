@@ -1,11 +1,5 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
-
-const serviceSupabase = createServiceClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 // GET /api/messages?with=<other_user_id>
 export async function GET(req: Request) {
@@ -23,7 +17,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Missing ?with=<user_id>" }, { status: 400 });
     }
 
-    const { data, error } = await serviceSupabase
+    const { data, error } = await supabase
       .from("messages")
       .select("*")
       .or(
@@ -54,7 +48,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "receiver_id and content are required" }, { status: 400 });
     }
 
-    const { data, error } = await serviceSupabase
+    const { data, error } = await supabase
       .from("messages")
       .insert({
         sender_id: user.id,

@@ -189,7 +189,7 @@ export default function PsychometricsDashboard() {
                   <h3 className="font-medium text-white">AI Behavioral Summary</h3>
                 </div>
                 <div className="prose prose-invert prose-sm max-w-none text-slate-300 leading-relaxed">
-                  {selectedStudent.summary_report.split('\n').map((paragraph, idx) => (
+                  {(selectedStudent.summary_report || "No summary report available.").split('\n').map((paragraph, idx) => (
                     <p key={idx} className="mb-3 last:mb-0">{paragraph}</p>
                   ))}
                 </div>

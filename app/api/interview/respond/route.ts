@@ -1,19 +1,21 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { createClient } from '@supabase/supabase-js';
+import { generateGeminiContent } from '@/lib/ai/gemini';
+import { createClient } from "@/lib/supabase/server";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { question, studentAnswer, targetRole } = await req.json();
     
-    // For this demonstration, we will default the email to your student account
-    const studentEmail = "avadhut@imed.edu";
-
     if (!studentAnswer || studentAnswer.trim() === '') {
       return NextResponse.json({ error: "No voice input detected." }, { status: 400 });
     }
@@ -38,25 +40,22 @@ export async function POST(req: Request) {
     let feedback = "";
     
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
-      const result = await model.generateContent(evaluationPrompt);
+      const result = await generateGeminiContent(evaluationPrompt);
       feedback = result.response.text().trim();
     } catch (e) {
-      // Fallback for more robust reasoning if flash fails JSON format
-      const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
-      const result = await fallbackModel.generateContent(evaluationPrompt);
-      feedback = result.response.text().trim();
+      console.error("Gemini fallback failed", e);
+      throw e;
     }
 
     // --- SECURE LOGGING TO SUPABASE ---
     const { error: dbError } = await supabase
       .from('interview_logs')
       .insert({
-        student_email: studentEmail,
+        student_id: user.id,
         target_role: targetRole,
-        question_asked: question,
-        student_transcript: studentAnswer,
-        ai_feedback: feedback
+        questions: [{ role: "ai", content: question }],
+        answers: [{ role: "user", content: studentAnswer }],
+        ai_feedback: { feedback }
       });
 
     if (dbError) {
